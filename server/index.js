@@ -40,15 +40,15 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
-// Serve static files only in production
-if (process.env.NODE_ENV === 'production') {
-  app.use(express.static(path.join(__dirname, 'public')));
+// // Serve static files only in production
+// if (process.env.NODE_ENV === 'production') {
+//   app.use(express.static(path.join(__dirname, 'public')));
 
-  // Serve frontend application
-  app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
-  });
-}
+//   // Serve frontend application
+//   app.get('*', (req, res) => {
+//     res.sendFile(path.join(__dirname, 'public', 'index.html'));
+//   });
+// }
 
 app.get('/test', (req, res) => {
   res.send('Server is running!');
