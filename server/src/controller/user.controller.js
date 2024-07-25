@@ -64,32 +64,11 @@ const login = async (req, res, next) => {
 
         res.cookie('token', token, { httpOnly: true, secure: false }); // Set 'secure: true' if using HTTPS
         res.cookie('refreshToken', refreshToken, { httpOnly: true, secure: false });
+        console.log("I am inside the login controller !!");
         console.log(user);
 
       
-            if (socketId) {
-
-                // Check if the room exists
-                const roomExists = req.io.sockets.adapter.rooms.has(uniqueRoom);
-    
-                if (roomExists) {
-                    console.log(`Room ${uniqueRoom} exists. Adding socket ${socketId} to the room.`);
-                } else {
-                    console.log(`Room ${uniqueRoom} does not exist. Creating and adding socket ${socketId} to the room.`);
-                }
-    
-                req.io.to(uniqueRoom).emit('LoginUser', {
-                    success: true,
-                    token,
-                    refreshToken,
-                    email:user["email"],
-                    username:username,
-                    userId: user["_id"]
-    
-                });
-    
-    
-            }
+            
 
 
         
