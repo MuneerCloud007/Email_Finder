@@ -14,7 +14,6 @@ const CertainityEnum = {
     ULTRA_SURE: 'ultra_sure',
     SURE: 'sure',
     PROBABLE: 'probable',
-    NOT_FOUND:'not_found'
 };
 
 // Utility function to introduce delay
@@ -89,9 +88,9 @@ const processVerification = async (result) => {
 
             verifiedData.push({
                 ...vl,
-                "EmailVerifier": response2["items"][0]["results"]["emails"]?.[0]?.["email"] || "NOT FOUND",
-                "Status": response2["items"][0]["results"]["emails"]?.[0]?.["certainty"] || "NOT FOUND",
-                "MxRecord": response2["items"][0]["results"]["emails"]?.[0]?.["mxRecords"]?.[0] || "NOT FOUND"
+                "EmailVerifier": response2["items"][0]["results"]["emails"]?.[0]?.["email"] || "not_found",
+                "Status": response2["items"][0]["results"]["emails"]?.[0]?.["certainty"] || "not_found",
+                "MxRecord": response2["items"][0]["results"]["emails"]?.[0]?.["mxRecords"]?.[0] || "not_found"
             });
             console.log("I am below pls check here!!!!!");
         } catch (error) {
