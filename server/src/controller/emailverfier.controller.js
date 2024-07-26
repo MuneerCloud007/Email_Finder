@@ -251,7 +251,7 @@ const findEmailVerifierController = async (req, res, next) => {
                 industry: companyInfo.industry,
                 revenue: companyInfo.revenue,
                 country: companyInfo.country,
-                description: companyInfo.description.replace(/\n/g, ' ').replace(/\s\s+/g, ' ').trim(),
+                description: companyInfo?.description.replace(/\n/g, ' ')?.replace(/\s\s+/g, ' ')?.trim(),
                 header_quater: companyInfo.header_quater,
                 type: companyInfo.type,
                 email: companyInfo["email"] || "Before data",
@@ -279,7 +279,9 @@ const findEmailVerifierController = async (req, res, next) => {
             return current;
         }, {});
 
-        // console.log(result);
+        console.log("PLS CHECK THE END RESULT PLS CHECK IT AS SOON AS POSSIBLE");
+
+         console.log(result);
         res.status(200).json({
             success: true,
             data: result
