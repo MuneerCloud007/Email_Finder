@@ -6,7 +6,7 @@ import {FileUpload} from "../controller/fileUpload.controller.js";
 const api = express.Router();
 const upload = multer();
 
-api.post('/upload/:id/:socket', upload.single('file'),FileUpload) 
+api.post('/upload/:id/:socket/:folder', upload.single('file'),FileUpload) 
 
 
 export default api;

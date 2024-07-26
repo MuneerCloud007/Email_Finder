@@ -49,7 +49,7 @@ const getAllFolder = async (req, res, next) => {
 
 const updateFolderById = async (req, res, next) => {
     try {
-        const { currentFolder, newFolder, socketId } = req.body;
+        const { currentFolder, newFolder } = req.body;
         const ip = req.ip || req.connection.remoteAddress; // Get the IP address from the req object
         const userAgent = req.headers['user-agent']; // Get the User Agent from the req object
         const uniqueRoom = `${ip}`; // Create the same unique room identifier
@@ -65,25 +65,8 @@ const updateFolderById = async (req, res, next) => {
             return next(ApiError.badRequest("Please provide a valid ID"));
         }
 
-       
-        if (socketId) {
+      
 
-            // Check if the room exists
-            const roomExists = req.io.sockets.adapter.rooms.has(uniqueRoom);
-
-            if (roomExists) {
-                console.log(`Room ${uniqueRoom} exists. Adding socket ${socketId} to the room.`);
-            } else {
-                console.log(`Room ${uniqueRoom} does not exist. Creating and adding socket ${socketId} to the room.`);
-            }
-
-            req.io.to(uniqueRoom).emit('UpdateFolder', {
-                success: true,
-                data: docs
-            });
-
-
-        }
 
         return res.status(200).json({
             success: true,
@@ -133,17 +116,20 @@ const deleteFolder = async (req, res, next) => {
 
 }
 
+
 const renameFolder = async (req, res, next) => {
     try {
         const { id } = req.params;
         const { name } = req.body;
+        console.log(name);
         if (!id) {
             throw new Error(ApiError.badRequest("Pls provide a valid id"));
         }
         if (!name) {
             throw new Error(ApiError.badRequest("Pls provide a valid name"));
         }
-        const data = await FolderSchema.findByIdAndUpdate(id, { name: name }, { new: true });
+        const data = await FolderSchema.findByIdAndUpdate(id, { FolderName: name }, { new: true });
+        console.log(data);
         res.status(200).json({
             success: true,
             data: data

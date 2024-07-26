@@ -42,7 +42,7 @@ const register = async (req, res, next) => {
 };
 
 const login = async (req, res, next) => {
-    const { username, password, socketId } = req.body;
+    const { username, password } = req.body;
     console.log(req.body);
     const ip = req.ip || req.connection.remoteAddress; // Get the IP address from the req object
     const userAgent = req.headers['user-agent']; // Get the User Agent from the req object

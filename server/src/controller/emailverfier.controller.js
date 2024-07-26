@@ -14,7 +14,7 @@ import { fetchEmailVerification, emailVerificationRequest, formatCompanyData } f
 
 
 const scrapeController = async (req, res, next) => {
-    const { firstName, lastName, user, position, folder, url, socketId, cookieData, profile } = req.body;
+    const { firstName, lastName, user, position, folder, url, cookieData, profile } = req.body;
     const profileUrl = profile;
     const ip = req.ip || req.connection.remoteAddress; // Get the IP address from the req object
     const userAgent = req.headers['user-agent']; // Get the User Agent from the req object
@@ -200,24 +200,7 @@ const scrapeController = async (req, res, next) => {
 
 
 
-        if (socketId) {
-
-            // Check if the room exists
-            const roomExists = req.io.sockets.adapter.rooms.has(uniqueRoom);
-
-            if (roomExists) {
-                console.log(`Room ${uniqueRoom} exists. Adding socket ${socketId} to the room.`);
-            } else {
-                console.log(`Room ${uniqueRoom} does not exist. Creating and adding socket ${socketId} to the room.`);
-            }
-
-            req.io.to(uniqueRoom).emit('postEmailVerifier', {
-                success: true,
-                data: result
-            });
-
-
-        }
+       
 
         return res.status(200).json({
             success: true,
@@ -356,10 +339,10 @@ const updateByIdCell = async (req, res, next) => {
     const { colName, colValue, colId } = req.body;
     let updateData = []
     console.log("Update BY ID Cell---------------------")
-    // console.log(userId);
-    // console.log(colName);
-    // console.log(colValue);
-    // console.log(colId);
+    console.log(userId);
+    console.log(colName);
+    console.log(colValue);
+    console.log(colId);
 
     if (!userId) {
         next(ApiError.badRequest("Please provide a objectId"))

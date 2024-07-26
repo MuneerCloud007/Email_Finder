@@ -69,47 +69,10 @@ const startServer = async () => {
 
 startServer();
 
-const io = new Server(server, {
-  cors: {
-    origin: '*',
-    methods: ['GET', 'POST'],
-    allowedHeaders: ['my-custom-header'],
-    credentials: true,
-  },
-});
 
-io.on('connection', (socket) => {
-  const ip = socket.request.headers['x-forwarded-for'] || socket.handshake.address;
-  const uniqueRoom = `${ip}`; // Create a unique room identifier
 
-  console.log(`New connection: IP = ${ip}`);
-  console.log('New client connected:', socket.id);
 
-  const roomExists = io.sockets.adapter.rooms.has(uniqueRoom);
 
-  if (roomExists) {
-    console.log(`Room ${uniqueRoom} exists. Adding socket ${socket.id} to the room.`);
-  } else {
-    console.log(`Room ${uniqueRoom} does not exist. Creating and adding socket ${socket.id} to the room.`);
-  }
-
-  socket.join(uniqueRoom);
-
-  socket.on('disconnect', (reason) => {
-    console.log('Client disconnected:', reason);
-    socket.leave(uniqueRoom);
-  });
-
-  socket.on('messageFromClient', ({ data, name, socketId }) => {
-    console.log(name);
-    console.log(data);
-    console.log(socketId);
-    io.emit('btnLoading', { message: 'THE BTN LOADING !!!' });
-  });
-});
-
-// Middleware to attach `io` to the `req` object
-app.use(socketIoMiddleware(io));
 
 // API routes
 app.use('/api/v1/user', userApi);
