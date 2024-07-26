@@ -225,9 +225,9 @@ const findEmailVerifierController = async (req, res, next) => {
         let arr = await emailVerificationModel.findOne({ $and: [{ user: new mongoose.Types.ObjectId(user) }, { folder: new mongoose.Types.ObjectId(folder) }] }).populate('companyInfo');;
 
 
-
-        // console.log("POPULATE COMPANY INFO")
-        // console.log(arr);
+        console.log("I am inside populate getALL !!!!");
+        console.log("POPULATE COMPANY INFO")
+        console.log(arr);
 
         if (!arr) {
             return res.status(200).json({
