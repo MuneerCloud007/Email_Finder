@@ -238,53 +238,53 @@ const findEmailVerifierController = async (req, res, next) => {
         }
 
 
-        let result = arr["companyInfo"].reduce((current, value) => {
-            const companyInfo = value;
-            let data = {
-                firstName: companyInfo.firstName,
-                lastName: companyInfo.lastName,
-                img: companyInfo.img,
-                company: companyInfo.company,
-                position: companyInfo.position,
-                website: companyInfo.website,
-                employees: companyInfo.employees,
-                industry: companyInfo.industry,
-                revenue: companyInfo.revenue,
-                country: companyInfo.country,
-                description: companyInfo?.description.replace(/\n/g, ' ')?.replace(/\s\s+/g, ' ')?.trim(),
-                header_quater: companyInfo.header_quater,
-                type: companyInfo.type,
-                email: companyInfo["email"] || "Before data",
-                certainty: companyInfo["certainty"] || "NOT FOUND",
+        // let result = arr["companyInfo"].reduce((current, value) => {
+        //     const companyInfo = value;
+        //     let data = {
+        //         firstName: companyInfo.firstName,
+        //         lastName: companyInfo.lastName,
+        //         img: companyInfo.img,
+        //         company: companyInfo.company,
+        //         position: companyInfo.position,
+        //         website: companyInfo.website,
+        //         employees: companyInfo.employees,
+        //         industry: companyInfo.industry,
+        //         revenue: companyInfo.revenue,
+        //         country: companyInfo.country,
+        //         description: companyInfo?.description.replace(/\n/g, ' ')?.replace(/\s\s+/g, ' ')?.trim(),
+        //         header_quater: companyInfo.header_quater,
+        //         type: companyInfo.type,
+        //         email: companyInfo["email"] || "Before data",
+        //         certainty: companyInfo["certainty"] || "NOT FOUND",
 
-                createdAt: companyInfo.createdAt,
-                updatedAt: companyInfo.updatedAt,
-                companyInfoId: companyInfo._id
-            };
-            if (companyInfo["dynamicFields"].length > 0) {
-                companyInfo["dynamicFields"].forEach((dynamicField) => {
-                    data[dynamicField.name] = dynamicField.value;
-                });
+        //         createdAt: companyInfo.createdAt,
+        //         updatedAt: companyInfo.updatedAt,
+        //         companyInfoId: companyInfo._id
+        //     };
+        //     if (companyInfo["dynamicFields"].length > 0) {
+        //         companyInfo["dynamicFields"].forEach((dynamicField) => {
+        //             data[dynamicField.name] = dynamicField.value;
+        //         });
 
-            }
+        //     }
 
 
-            let key = companyInfo.firstName + " " + companyInfo.lastName;
-            current[key] = {
-                id: value._id,
-                ...data,
-                folder: value.folder,
-                user: value.user
-            };
-            return current;
-        }, {});
+        //     let key = companyInfo.firstName + " " + companyInfo.lastName;
+        //     current[key] = {
+        //         id: value._id,
+        //         ...data,
+        //         folder: value.folder,
+        //         user: value.user
+        //     };
+        //     return current;
+        // }, {});
 
-        console.log("PLS CHECK THE END RESULT PLS CHECK IT AS SOON AS POSSIBLE");
+        // console.log("PLS CHECK THE END RESULT PLS CHECK IT AS SOON AS POSSIBLE");
 
-         console.log(result);
+        //  console.log(result);
         res.status(200).json({
             success: true,
-            data: result
+            data: arr["companyInfo"]
         });
     } catch (err) {
         next(ApiError.internal(err.message || "Internal Error"));
@@ -362,7 +362,7 @@ const updateByIdCell = async (req, res, next) => {
 
             // Perform the update
             updateData = await companyInfoModel.updateOne(
-                { user: userId, _id: colId },
+                { _id: colId },
                 update
             );
 
@@ -581,7 +581,8 @@ const removeRow = async (req, res, next) => {
         if (!data) {
             next(ApiError.badRequest("Please provide a please deletion array"))
         }
-        // console.log(data);
+        console.log("REMOVE ROW DATA !!!!");
+         console.log(data);
 
 
         const deletionPromises = data.map(id => companyInfoModel.findByIdAndDelete(id));
