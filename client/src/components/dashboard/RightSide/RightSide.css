@@ -1,0 +1,171 @@
+
+
+
+
+.wrapper-table{
+    padding: 0.3rem 1rem;
+   
+}
+.inner-wrapper-table{
+    height: 52vh;
+    overflow: auto;
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  
+    
+}
+.inner-wrapper-table::-webkit-scrollbar {
+ border-width: 1px !important;
+}
+
+
+ table tbody tr:last-child td {
+    border-width: 1px !important ;
+    /* display: none; */
+
+}
+
+
+
+
+.Trail-table{
+    overflow: auto
+    ;
+    width: 100%;
+}
+th{
+    padding: 0.5rem;
+    background-color: white;
+}
+table{
+    box-shadow: rgba(0, 0, 0, 0.15) 1.95px 1.95px 2.6px;
+    height: 100%;
+    table-layout: fixed;
+}
+tr{
+    /* border: 1px solid whitesmoke; */
+
+}
+thead>tr{
+    background-color: white !important;
+}
+thead{
+    min-width: 100%;
+    overflow-x: auto;
+    position: sticky;
+    top: 0;
+}
+th {
+    resize: horizontal; /* Allow horizontal resizing */
+    cursor: pointer; /* Default cursor style */
+    overflow: hidden;
+  }
+  
+  
+.th-0{
+    width: 18%;
+    overflow: hidden;
+    padding: 0.3rem;
+}
+.th-1{
+    width: 25%;
+
+}
+.th-2{
+    width: 15%;
+}
+.th-3{
+    width: 28%;
+
+}
+
+.th-4{
+    width: 15%;
+}
+
+.th-5{
+    width: 13%;
+}
+
+
+table tbody td{
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-wrap: wrap;
+    text-align: center;
+    white-space: break-spaces;
+    }
+.arrow{
+   display: inline-block;
+}
+.wrapper-arrow{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap:wrap ;
+    gap: 0.7rem;
+}
+.p-datatable-wrapper {
+    overflow: auto;
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none; 
+}
+.p-datatable-table{
+    overflow: auto;
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  
+
+}
+.p-datatable-tbody>tr{
+    padding: 0.5rem;
+}
+
+.p-datatable-tbody > tr:nth-child(even) {
+    background-color: aliceblue; /* Background color for even rows */
+  }
+  
+  .p-datatable-tbody > tr:nth-child(odd) {
+    background-color: white; /* Background color for odd rows */
+  }
+  .p-datatable tbody tr td {
+    padding: 8px; /* Adjust padding value as needed */
+    /* border-left: 1px solid #e5e7eb; */
+
+  }
+
+  /* CSS */
+.p-paginator {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 1rem;
+  }
+  
+  .p-paginator .p-paginator-pages {
+    display: flex;
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+  }
+  
+  .p-paginator .p-paginator-page {
+    padding: 0.5rem;
+    margin: 0 0.2rem;
+    border: 1px solid #ccc;
+    cursor: pointer;
+  }
+  
+  .p-paginator .p-paginator-page:hover {
+    background-color: #f0f0f0;
+  }
+  
+  .p-paginator .p-paginator-page.p-highlight {
+    background-color: #007ad9;
+    color: #fff;
+    border-color: #007ad9;
+  }
+  
+  .p-paginator .p-paginator-page.p-disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+  
