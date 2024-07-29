@@ -18,7 +18,7 @@ function App() {
 
   const storedSocketId = localStorage.getItem('socketId');
 
-  const socket = useMemo(() => io('http://localhost:5000', {
+  const socket = useMemo(() => io('https://test.onlylwc.com/', {
     query: { socketId: storedSocketId },
   }), [storedSocketId]);
 

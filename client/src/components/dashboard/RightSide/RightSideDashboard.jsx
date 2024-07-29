@@ -85,7 +85,7 @@ console.log("FIELD_______________________________"+fileId);
     console.log("GRID READY !!!!");
 
 
-    fetch('http://localhost:5000/api/v1/file/file/getById', {
+    fetch('https://test.onlylwc.com/api/v1/file/file/getById', {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
