@@ -104,7 +104,7 @@ function App() {
   return (
     <socketContextApi.Provider value={{socket:socket}}>
 
-      <div className="app h-[98vh] m-2 flex flex-col justify-between  ">
+      <div className="app h-[98vh] m-2 flex flex-col justify-between no-scroll-bar ">
         <Header />
         <Outlet />
         <Footer/>
