@@ -8,7 +8,7 @@ import companyInfo from '../model/companyInfo.js';
 import fileModel from '../model/file.model.js';
 import ApiError from '../utils/ApiError.js';
 import fileTableModal from '../model/fileTable.modal.js';
-import {fileDownload} from "./FileHelper/File.js";
+import { fileDownload } from "./FileHelper/File.js";
 import mongoose from "mongoose";
 
 
@@ -330,11 +330,14 @@ const FileTesting = async (req, res, next) => {
 
     const promises = result.map(async (vl) => {
         const { firstName, lastName, domain, email, certainty, mxrecords, mxProvider } = vl;
-        let newFileTable = new fileTableModal({ firstName, lastName, domain, email, certainty, mxRecord: mxrecords, mxProvider,userId:id,fileId:newFileData["_id"] });
+        console.log("Line no 333 in file upload");
+        console.log(vl);
+
+        let newFileTable = new fileTableModal({ firstName, lastName, domain, email, certainty, mxRecord: mxrecords, mxProvider, userId: id, fileId: newFileData["_id"] });
         newFileTable = await newFileTable.save();
         newFileData["fileData"].push(newFileTable["_id"]);
     });
-    
+
     await Promise.all(promises);
 
     newFileData.data = updatedData;
@@ -384,75 +387,240 @@ const getAllFileData = async (req, res, next) => {
 
 }
 
-const getFileById=async (req,res,next)=>{
-    const {fileId}=req.body;
-    try{
-        console.log("FILE ID IS HERE = "+fileId);
-    if(!fileId){
-        throw ApiError.badRequest("FILE ID IS NOT PRESENT !!!!");
+const getFileById = async (req, res, next) => {
+    const { fileId } = req.body;
+    try {
+        console.log("FILE ID IS HERE = " + fileId);
+        if (!fileId) {
+            throw ApiError.badRequest("FILE ID IS NOT PRESENT !!!!");
 
-    }
+        }
 
-    const fileByIdData=await fileModel.findById(new mongoose.Types.ObjectId(fileId)).populate("fileData");
-    if(!fileByIdData){
-        throw ApiError.badRequest("FILE BY ID DATA IS NOT PRESENT !!!!");
-    }
+        const fileByIdData = await fileModel.findById(new mongoose.Types.ObjectId(fileId)).populate("fileData");
+        if (!fileByIdData) {
+            throw ApiError.badRequest("FILE BY ID DATA IS NOT PRESENT !!!!");
+        }
 
 
-    res.status(200).json({
-        success:true,
-        data:fileByIdData
+        res.status(200).json({
+            success: true,
+            data: fileByIdData
         })
     }
-    catch(err){
+    catch (err) {
         next(err);
     }
 
 }
 
 
-const fileDownloadController=async(req,res,next)=>{
-    try{
-    const {userId,fileId}=req.body;
-    const file=await fileModel.findById(fileId);
-    if(!file) throw ApiError.badRequest("file not found");
-    file.data; 
-    const data = file.data.map(item => {
-        const { mxProvider, certainty,mxrecords,email,...rest } = item;
+const fileDownloadController = async (req, res, next) => {
+    try {
+        const { userId, fileId } = req.body;
+        const file = await fileModel.findById(fileId);
+        if (!file) throw ApiError.badRequest("file not found");
+        file.data;
+        const data = file.data.map(item => {
+            const { mxProvider, certainty, mxrecords, email, ...rest } = item;
 
-       const data= {
-        'First Name': item.firstName,
-        'Last Name': item.lastName,
-        'Domain': item.domain,
-        'Vivalasales Email': email,
-        'Vivalasales Certainty': certainty,
-        'Vivalasales MX Records': mxrecords,
-        'Vivalasales MX Provider': mxProvider
-    
+            const data = {
+                'First Name': item.firstName,
+                'Last Name': item.lastName,
+                'Domain': item.domain,
+                'Vivalasales Email': email,
+                'Vivalasales Certainty': certainty,
+                'Vivalasales MX Records': mxrecords,
+                'Vivalasales MX Provider': mxProvider
+
+            }
+            return data;
+
+        });
+
+        const { ws, wb } = await fileDownload(data);
+
+        const buf = xlsx.write(wb, { bookType: 'xlsx', type: 'buffer' });
+        res.header('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        res.attachment('vivaLaSales_NewFile.xlsx');
+        res.send(buf);
     }
-    return data;
-
-});
-
-const {ws,wb}=await fileDownload(data);
-
-const buf = xlsx.write(wb, { bookType: 'xlsx', type: 'buffer' });
-res.header('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-res.attachment('vivaLaSales_NewFile.xlsx');
-res.send(buf);
-    }
-    catch(err){
+    catch (err) {
         next(err);
     }
-
-
-
-
-
-
 
 }
 
 
+const addRowFile = async (req, res, next) => {
+    try {
+        const { userId, fileId } = req.body;
+        console.log(userId);
+        console.log(fileId);
+        let fileData = await fileModel.find({ $and: [{ user: new mongoose.Types.ObjectId(userId) }, { _id: new mongoose.Types.ObjectId(fileId) }] });
+        if ((!fileData || !fileData[0]?.fileData.length > 0)) {
+            throw ApiError.badRequest("The the file does't requested is not present to add !!!!");
 
-export { FileUpload, FileTesting, getAllFileData,fileDownloadController,getFileById };
+        }
+
+        let fileTableData = await fileTableModal({
+            firstName: "",
+            lastName: "",
+            domain: "",
+            email: "",
+            certainty: "",
+            mxrecords: "",
+            mxProvider: "",
+            fileId: fileId,
+            userId: userId
+
+
+
+        })
+        fileTableData = await fileTableData.save();
+
+        console.log("FILE DATS");
+        console.log(fileData);
+        fileData[0]["fileData"].push(fileTableData["_id"])
+        await fileData[0].save();
+
+        let data = {
+            firstName: fileTableData.firstName,
+            lastName: fileTableData.lastName,
+            domain: fileTableData.company,
+            email: fileTableData.email,
+            certainty: fileTableData["certainty"],
+            mxrecords: fileTableData.mxRecord,
+            mxProvider: fileTableData.mxProvider
+        };
+
+        return res.status(200).json({
+            success: true,
+            data: { ...data }
+
+
+        })
+
+
+
+
+    }
+    catch (err) {
+        next(err);
+
+    }
+}
+
+const deleteRowFile = async (req, res, next) => {
+    try {
+        const { fileId, userId, data, fileTableId } = req.body;
+        if (!data) {
+            next(ApiError.badRequest("Please provide a please deletion array"))
+        }
+
+
+
+        const deletionPromises = data.map(id => fileTableModal.findByIdAndDelete(id));
+        const CatcheDataPromises = data.map(id => fileModel.updateOne(
+            { $and: [{ _id: fileId }, { userId: userId }] },
+            { $pull: { fileData: id } }
+        ))
+
+        // Wait for all deletions to complete
+        const results = await Promise.all(deletionPromises);
+        const catcheResult = await Promise.all(CatcheDataPromises);
+        // console.log(catcheResult);
+        res.status(200).json({
+            success: true,
+            data: results
+        })
+
+    }
+    catch (err) {
+        next(err);
+    }
+}
+
+
+
+
+const updateByIdCell = async (req, res, next) => {
+    const userId = req.params.id;
+    const { colName, colValue, colId } = req.body;
+    let updateData = []
+    console.log("Update BY ID Cell---------------------")
+    console.log(userId);
+    console.log(colName);
+    console.log(colValue);
+    console.log(colId);
+
+
+    try {
+        if (!userId) {
+            next(ApiError.badRequest("Please provide a objectId"))
+        }
+        let updateData;
+
+        const update = {
+            $set: {
+                [colName]: colValue
+            }
+        };
+
+        // Perform the update
+        updateData = await fileTableModal.updateOne(
+            { _id: colId },
+            update
+        );
+
+
+
+
+
+
+
+
+        res.header("Content-Type", "application/json");
+
+
+        res.status(200).json({
+            sucess: "true",
+            data: updateData
+        })
+    }
+    catch (err) {
+        next(err);
+    }
+
+}
+
+
+const fileById = async (req, res, next) => {
+    try {
+        const { id } = req.params;
+        if (!id) {
+            throw new ApiError.badRequest("Id is not present");
+        }
+        const file = await fileData.findById(id);
+        if (!file) {
+            throw new ApiError.badRequest("File is not present");
+
+        }
+        const newFile = await file.populate("fileData");
+        res.status({
+            success: true,
+            data: newFile
+        })
+
+
+    }
+    catch (err) {
+        next(err);
+
+    }
+}
+
+
+
+
+
+export { FileUpload, FileTesting, getAllFileData, fileDownloadController, getFileById, addRowFile, deleteRowFile, updateByIdCell, fileById };

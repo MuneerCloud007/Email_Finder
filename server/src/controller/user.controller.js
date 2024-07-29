@@ -44,9 +44,7 @@ const register = async (req, res, next) => {
 const login = async (req, res, next) => {
     const { username, password } = req.body;
     console.log(req.body);
-    const ip = req.ip || req.connection.remoteAddress; // Get the IP address from the req object
-    const userAgent = req.headers['user-agent']; // Get the User Agent from the req object
-    const uniqueRoom = `${ip}`; // Create the same unique room identifier
+  
     try {
         const user = await User.findOne({ username });
         if (!user) {

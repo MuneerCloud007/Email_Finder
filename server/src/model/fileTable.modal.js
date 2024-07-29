@@ -3,12 +3,13 @@ import mongoose from "mongoose";
 const fileTable=new mongoose.Schema({
     fileId:{type:mongoose.Schema.Types.ObjectId,ref:"file"},
     userId:{type:mongoose.Schema.Types.ObjectId,ref:"user"},
-    firstName:{type:String,required:true},
-    lastName:{type:String,required:true},
-    domain:{type:String,required:true},
-    certainty:{type:String,required:true},
-    mxRecord:{type:String,required:true},
-    mxProvider:{type:String,required:true}
+    firstName:{type:String,default:"invalid"},
+    lastName:{type:String,default:"invalid"},
+    domain:{type:String,default:"invalid"},
+    email:{type:String,default:"invalid"},
+    certainty:{type:String,default:"invalid"},
+    mxRecord:{type:String,default:"invalid"},
+    mxProvider:{type:String,default:"invalid"}
 
 })
 

@@ -2,7 +2,7 @@ import multer from 'multer';
 import express from  "express";
 
 
-import {FileUpload,FileTesting,getAllFileData,fileDownloadController,getFileById} from "../controller/fileUpload.controller.js";
+import {FileUpload,FileTesting,getAllFileData,fileDownloadController,getFileById,addRowFile,deleteRowFile,updateByIdCell,fileById} from "../controller/fileUpload.controller.js";
 
 const api = express.Router();
 const upload = multer();
@@ -13,6 +13,11 @@ api.get("/getAllFile/:id",getAllFileData);
 api.post("/download/File",fileDownloadController);
 
 api.post("/file/getById",getFileById);
+api.post("/addRow",addRowFile)
+
+api.delete("/delete/rowData",deleteRowFile)
+api.put("/update/cell/:id",updateByIdCell)
+api.get("/")
 
 
 export default api;
