@@ -70,6 +70,53 @@ const startServer = async () => {
 startServer();
 
 
+const io = new Server(server, {
+  cors: {
+    origin: "*",
+    methods: ["GET", "POST"],
+    allowedHeaders: ["my-custom-header"],
+    credentials: true
+  }
+});
+
+io.on('connection', (socket) => {
+  const ip = socket.request.headers['x-forwarded-for'] || socket.handshake.address;
+  const uniqueRoom = `${ip}`; // Create a unique room identifier
+
+  console.log(`New connection: IP = ${ip}`);
+  console.log('New client connected:', socket.id);
+
+
+   // Check if the room exists
+   const roomExists = io.sockets.adapter.rooms.has(uniqueRoom);
+
+   if (roomExists) {
+     console.log(`Room ${uniqueRoom} exists. Adding socket ${socket.id} to the room.`);
+   } else {
+     console.log(`Room ${uniqueRoom} does not exist. Creating and adding socket ${socket.id} to the room.`);
+   }
+ 
+
+  // Join the unique room
+  socket.join(uniqueRoom);
+
+  socket.on('disconnect', (reason) => {
+    console.log('Client disconnected:', reason);
+    socket.leave(uniqueRoom);
+
+  });
+
+  socket.on('messageFromClient', ({ data, name, socketId }) => {
+    console.log(name);
+    console.log(data);
+    console.log(socketId);
+    io.emit("btnLoading", {message:"THE BTN LOADING !!!"});
+  });
+});
+
+// Use the middleware to attach `io` to the `req` object
+app.use(socketIoMiddleware(io));
+
 
 
 
@@ -78,7 +125,7 @@ startServer();
 app.use('/api/v1/user', userApi);
 app.use('/api/v1/emailVerifier', emailVerifier);
 app.use('/api/v1/folder', folderApi);
-app.use('/api/v1/file', fileUploadApi);
+app.use('/api/v1/file', fileUploadApi);   ////  ""
 app.use('/api/v1/credit', creditApi);
 api.use('/api/v1/autoWebscraping', autoWebscraping);
 

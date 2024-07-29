@@ -5,6 +5,12 @@ import { fileURLToPath } from 'url';
 import creditModel from '../model/credit.model.js';
 import emailVerificationModel from '../model/emailverfier.model.js';
 import companyInfo from '../model/companyInfo.js';
+import fileModel from '../model/file.model.js';
+import ApiError from '../utils/ApiError.js';
+import fileTableModal from '../model/fileTable.modal.js';
+import {fileDownload} from "./FileHelper/File.js";
+import mongoose from "mongoose";
+
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -20,20 +26,50 @@ const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
 const extractDomain = (url) => new URL(url).hostname.replace(/^www\./, '');
 
-const processData = (sheet) => {
+const processData = (sheet, columnMapping) => {
     const range = xlsx.utils.decode_range(sheet['!ref']);
     const data = [];
+    const columnHeaders = {
+        firstName: columnMapping.firstNameColumn,
+        lastName: columnMapping.lastNameColumn,
+        domain: columnMapping.companyNameColumn
+    };
+
+    // Find column indices based on provided column names
+    const colIndices = {};
+    for (let col = range.s.c; col <= range.e.c; col++) {
+        const cell = sheet[xlsx.utils.encode_cell({ r: 0, c: col })];
+        if (cell) {
+            const colHeader = cell.v.trim();
+            if (Object.values(columnHeaders).includes(colHeader)) {
+                colIndices[colHeader] = col;
+            }
+        }
+    }
+
     for (let row = range.s.r + 1; row <= range.e.r; row++) {
-        const firstName = sheet[xlsx.utils.encode_cell({ r: row, c: 0 })]?.v || '';
-        const lastName = sheet[xlsx.utils.encode_cell({ r: row, c: 1 })]?.v || '';
-        const websiteOrDomain = sheet[xlsx.utils.encode_cell({ r: row, c: 2 })]?.v || '';
+        const firstName = sheet[xlsx.utils.encode_cell({ r: row, c: colIndices[columnHeaders.firstName] })]?.v || '';
+        const lastName = sheet[xlsx.utils.encode_cell({ r: row, c: colIndices[columnHeaders.lastName] })]?.v || '';
+        const websiteOrDomain = sheet[xlsx.utils.encode_cell({ r: row, c: colIndices[columnHeaders.domain] })]?.v || '';
         const domain = websiteOrDomain.includes('http') ? extractDomain(websiteOrDomain) : websiteOrDomain;
         data.push({ firstName, lastName, domain });
     }
     return data;
 };
 
-const makeRequestWithRetry = async (url, data, headers, maxRetries = 5, delayMs = 12000) => {
+const processDataFromJson = (data, columnMapping) => {
+    return data.map(item => {
+        const firstName = item[columnMapping.firstNameColumn] || '';
+        const lastName = item[columnMapping.lastNameColumn] || '';
+        const websiteOrDomain = item[columnMapping.companyNameColumn] || '';
+        const domain = websiteOrDomain.includes('http') ? extractDomain(websiteOrDomain) : websiteOrDomain;
+        return { firstName, lastName, domain };
+    });
+};
+
+
+
+const makeRequestWithRetry = async (url, data, headers, maxRetries = 5, delayMs = 14000, { req, socket }) => {
     let retries = 0;
     while (retries < maxRetries) {
         try {
@@ -57,7 +93,7 @@ const makeRequestWithRetry = async (url, data, headers, maxRetries = 5, delayMs 
     }
 };
 
-const processVerification = async (subarray) => {
+const processVerification = async (subarray, { req, socket }) => {
     const EmailVerifierData = {
         task: 'email-search',
         name: 'CloudV',
@@ -76,7 +112,7 @@ const processVerification = async (subarray) => {
 
     const url2 = 'https://app.icypeas.com/api/bulk-single-searchs/read';
     const maxRetries = subarray.length > 100 ? 20 : subarray.length > 50 ? 10 : 5;
-    const customDelay = subarray.length > 100 ? 12000 : subarray.length > 50 ? 11000 : 10000;
+    const customDelay = subarray.length > 200 ? 15000 : subarray.length > 50 ? 11000 : 10000;
 
     const resultOption = {
         user: 'LUx6tZABOIKatkTjs8LF',
@@ -91,27 +127,31 @@ const processVerification = async (subarray) => {
         limit: subarray.length
     };
 
-    const response2 = await makeRequestWithRetry('https://app.icypeas.com/api/search-files/read', checkOption, headers, 500, customDelay);
+    const response2 = await makeRequestWithRetry('https://app.icypeas.com/api/search-files/read', checkOption, headers, 1000, customDelay, { req, socket });
     if (!response2.files[0]['finished']) {
         throw new Error('Error during file processing');
     }
 
     const response3 = await axios.post(url2, resultOption, { headers });
-    return { data: response3.data.items, size: response2.files[0].found };
+    return { data: response3.data.items, found: response2.files[0].found, size: subarray.length };
 };
 
-const processSubarrays = async (subarrays) => {
+const processSubarrays = async (subarrays, { req, socket }) => {
     const verifiedData = [];
     let totalSize = 0;
-    const promises = subarrays.map(subarray => processVerification(subarray));
+    let foundSize = 0
+    const promises = subarrays.map(subarray => processVerification(subarray, { req, socket }));
     const results = await Promise.all(promises);
 
-    results.forEach(({ data, size }) => {
+    results.forEach(({ data, size, found }) => {
         verifiedData.push(...data);
         totalSize += size;
+        foundSize += found;
     });
 
-    return { verifiedData, totalSize };
+
+
+    return { verifiedData, totalSize, foundSize };
 };
 
 const FileUpload = async (req, res) => {
@@ -135,7 +175,7 @@ const FileUpload = async (req, res) => {
             return res.status(400).send('Insufficient points');
         }
 
-        const subarraySize = 50;
+        const subarraySize = 5000;
         const subarrays = [];
         for (let i = 0; i < result.length; i += subarraySize) {
             subarrays.push(result.slice(i, i + subarraySize));
@@ -155,35 +195,35 @@ const FileUpload = async (req, res) => {
             mxProvider: verifiedData[index]?.results.emails?.[0]?.mxProvider || 'unknown'
         }));
 
-      
+
         for (const vl of updatedData) {
             const { firstName, lastName, domain, email, certainty } = vl;
             const createNewEmailVerifier = new companyInfo({
                 firstName,
                 lastName,
-                company: domain || 'not present',
-                email: email || 'not present',
-                certainty: certainty || 'not present'
+                company: domain || 'invalid',
+                email: email || 'invalid',
+                certainty: certainty || 'invalid'
             });
             await createNewEmailVerifier.save();
 
             const companies = await emailVerificationModel.find({ $and: [{ user: id }, { folder }] });
-            if(companies.length==0){
-                const newEmailVerifier=new emailVerificationModel({
-                    user:id,
-                    folder:folder,
-                    companyInfo:createNewEmailVerifier._id
+            if (companies.length == 0) {
+                const newEmailVerifier = new emailVerificationModel({
+                    user: id,
+                    folder: folder,
+                    companyInfo: createNewEmailVerifier._id
 
                 })
                 await newEmailVerifier.save();
 
             }
-            else{
-            for (const company of companies) {
-                company.companyInfo.push(createNewEmailVerifier._id);
-                await company.save();
+            else {
+                for (const company of companies) {
+                    company.companyInfo.push(createNewEmailVerifier._id);
+                    await company.save();
+                }
             }
-        }
         }
 
         const newSheet = xlsx.utils.json_to_sheet(updatedData);
@@ -200,4 +240,219 @@ const FileUpload = async (req, res) => {
     }
 };
 
-export { FileUpload };
+const FileTesting = async (req, res, next) => {
+    const { data, socket, mappingData, id, fileName } = req.body
+
+    console.log(req.body);
+
+    let newFileData = new fileModel({
+        user: id,
+        file_name: fileName,
+        totalValid: 0,
+        totalData: data.length,
+        status: "pending",
+        data: []
+
+
+    });
+
+
+    req.io.to(socket).emit("File_Pending", {
+        message: {
+            user: id,
+            file_name: fileName,
+            totalValid: 0,
+            totalData: data.length,
+            status: "pending",
+            data: []
+
+
+        },
+        success: true
+
+    })
+
+    newFileData = await newFileData.save();
+
+
+
+
+
+    const credit = await creditModel.findOne({ user: id });
+
+    console.log(credit);
+
+
+
+    const result = processDataFromJson(data, mappingData);
+    if (result.length > credit.points) {
+        return res.status(400).send('Insufficient points');
+    }
+
+    if (result.length > credit.points) {
+        return res.status(400).send('Insufficient points');
+    }
+
+    //Result is checked now operation is started 
+    const subarraySize = 5000;
+    const subarrays = [];
+    for (let i = 0; i < result.length; i += subarraySize) {
+        subarrays.push(result.slice(i, i + subarraySize));
+    }
+
+    const { verifiedData, totalSize, foundSize } = await processSubarrays(subarrays, { req, socket });
+
+    const count = foundSize;
+    credit.points = Math.max(0, credit.points - count);
+    await credit.save();
+
+    const updatedData = result.map((row, index) => {
+        result[index]["email"] = verifiedData[index]?.results.emails?.[0]?.email || 'invalid';
+        result[index]["certainty"] = verifiedData[index]?.results.emails?.[0]?.certainty || 'invalid'
+        result[index]["mxrecords"] = verifiedData[index]?.results.emails?.[0]?.mxRecords?.[0] || 'invalid'
+        result[index]["mxProvider"] = verifiedData[index]?.results.emails?.[0]?.mxProvider || 'invalid'
+
+
+        const data = {
+            ...row,
+            email: verifiedData[index]?.results.emails?.[0]?.email || 'invalid',
+            certainty: verifiedData[index]?.results.emails?.[0]?.certainty || 'invalid',
+            mxrecords: verifiedData[index]?.results.emails?.[0]?.mxRecords?.[0] || 'invalid',
+            mxProvider: verifiedData[index]?.results.emails?.[0]?.mxProvider || 'invalid'
+        }
+        return data;
+
+
+    });
+
+    console.log("Result !!!!!!");
+    console.log(result);
+
+    const promises = result.map(async (vl) => {
+        const { firstName, lastName, domain, email, certainty, mxrecords, mxProvider } = vl;
+        let newFileTable = new fileTableModal({ firstName, lastName, domain, email, certainty, mxRecord: mxrecords, mxProvider,userId:id,fileId:newFileData["_id"] });
+        newFileTable = await newFileTable.save();
+        newFileData["fileData"].push(newFileTable["_id"]);
+    });
+    
+    await Promise.all(promises);
+
+    newFileData.data = updatedData;
+    newFileData.totalValid = foundSize;
+    newFileData.status = "completed"
+    newFileData = await newFileData.save();
+
+
+
+    req.io.emit("File_success", {
+        message: {
+            user: id,
+            file_name: fileName,
+            totalValid: foundSize,
+            totalData: totalSize,
+            data: updatedData,
+            status: "completed"
+
+
+        },
+        success: true
+
+    })
+
+
+
+
+
+
+
+    res.status(200).json({
+        success: true,
+        data: newFileData
+    });
+}
+
+const getAllFileData = async (req, res, next) => {
+    const { id } = req.params;
+    if (!id) {
+        throw ApiError.badRequest("user id is missing");
+    }
+    const fileData = await fileModel.find({ user: id });
+    res.status(200).json({
+        success: true,
+        data: fileData
+    })
+
+}
+
+const getFileById=async (req,res,next)=>{
+    const {fileId}=req.body;
+    try{
+        console.log("FILE ID IS HERE = "+fileId);
+    if(!fileId){
+        throw ApiError.badRequest("FILE ID IS NOT PRESENT !!!!");
+
+    }
+
+    const fileByIdData=await fileModel.findById(new mongoose.Types.ObjectId(fileId)).populate("fileData");
+    if(!fileByIdData){
+        throw ApiError.badRequest("FILE BY ID DATA IS NOT PRESENT !!!!");
+    }
+
+
+    res.status(200).json({
+        success:true,
+        data:fileByIdData
+        })
+    }
+    catch(err){
+        next(err);
+    }
+
+}
+
+
+const fileDownloadController=async(req,res,next)=>{
+    try{
+    const {userId,fileId}=req.body;
+    const file=await fileModel.findById(fileId);
+    if(!file) throw ApiError.badRequest("file not found");
+    file.data; 
+    const data = file.data.map(item => {
+        const { mxProvider, certainty,mxrecords,email,...rest } = item;
+
+       const data= {
+        'First Name': item.firstName,
+        'Last Name': item.lastName,
+        'Domain': item.domain,
+        'Vivalasales Email': email,
+        'Vivalasales Certainty': certainty,
+        'Vivalasales MX Records': mxrecords,
+        'Vivalasales MX Provider': mxProvider
+    
+    }
+    return data;
+
+});
+
+const {ws,wb}=await fileDownload(data);
+
+const buf = xlsx.write(wb, { bookType: 'xlsx', type: 'buffer' });
+res.header('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+res.attachment('vivaLaSales_NewFile.xlsx');
+res.send(buf);
+    }
+    catch(err){
+        next(err);
+    }
+
+
+
+
+
+
+
+}
+
+
+
+export { FileUpload, FileTesting, getAllFileData,fileDownloadController,getFileById };
