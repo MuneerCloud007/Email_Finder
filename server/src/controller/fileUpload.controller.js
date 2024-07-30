@@ -3,8 +3,7 @@ import axios from 'axios';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import creditModel from '../model/credit.model.js';
-import emailVerificationModel from '../model/emailverfier.model.js';
-import companyInfo from '../model/companyInfo.js';
+
 import fileModel from '../model/file.model.js';
 import ApiError from '../utils/ApiError.js';
 import fileTableModal from '../model/fileTable.modal.js';
@@ -56,6 +55,15 @@ const processData = (sheet, columnMapping) => {
     }
     return data;
 };
+const isCertaintyValid = (certainty) => {
+    if(Object.values(CertainityEnum).includes(certainty)){
+        return "valid"
+    }
+    else{
+        return certainty || "invalid"
+
+    }};
+
 
 const processDataFromJson = (data, columnMapping) => {
     return data.map(item => {
@@ -121,7 +129,7 @@ const processVerification = async (subarray, { req, socket }) => {
         type: 'email-search',
         limit: subarray.length
     };
-    const checkOption = {
+    const checkOption = { 
         user: 'LUx6tZABOIKatkTjs8LF',
         file,
         limit: subarray.length
@@ -154,96 +162,34 @@ const processSubarrays = async (subarrays, { req, socket }) => {
     return { verifiedData, totalSize, foundSize };
 };
 
-const FileUpload = async (req, res) => {
-    if (!req.file) {
-        return res.status(400).send('No file uploaded.');
-    }
 
-    const { id, folder } = req.params;
-
-    try {
-        const fileBuffer = req.file.buffer;
-        const credit = await creditModel.findOne({ user: id });
-
-        const workbook = xlsx.read(fileBuffer, { type: 'buffer' });
-        const sheetName = workbook.SheetNames[0];
-        const sheet = workbook.Sheets[sheetName];
-
-        const result = processData(sheet);
-
-        if (result.length > credit.points) {
-            return res.status(400).send('Insufficient points');
-        }
-
-        const subarraySize = 5000;
-        const subarrays = [];
-        for (let i = 0; i < result.length; i += subarraySize) {
-            subarrays.push(result.slice(i, i + subarraySize));
-        }
-
-        const { verifiedData, totalSize } = await processSubarrays(subarrays);
-
-        const count = totalSize;
-        credit.points = Math.max(0, credit.points - count);
-        await credit.save();
-
-        const updatedData = result.map((row, index) => ({
-            ...row,
-            email: verifiedData[index]?.results.emails?.[0]?.email || 'unknown',
-            certainty: verifiedData[index]?.results.emails?.[0]?.certainty || 'unknown',
-            mxrecords: verifiedData[index]?.results.emails?.[0]?.mxRecords?.[0] || 'unknown',
-            mxProvider: verifiedData[index]?.results.emails?.[0]?.mxProvider || 'unknown'
-        }));
-
-
-        for (const vl of updatedData) {
-            const { firstName, lastName, domain, email, certainty } = vl;
-            const createNewEmailVerifier = new companyInfo({
-                firstName,
-                lastName,
-                company: domain || 'invalid',
-                email: email || 'invalid',
-                certainty: certainty || 'invalid'
-            });
-            await createNewEmailVerifier.save();
-
-            const companies = await emailVerificationModel.find({ $and: [{ user: id }, { folder }] });
-            if (companies.length == 0) {
-                const newEmailVerifier = new emailVerificationModel({
-                    user: id,
-                    folder: folder,
-                    companyInfo: createNewEmailVerifier._id
-
-                })
-                await newEmailVerifier.save();
-
-            }
-            else {
-                for (const company of companies) {
-                    company.companyInfo.push(createNewEmailVerifier._id);
-                    await company.save();
-                }
-            }
-        }
-
-        const newSheet = xlsx.utils.json_to_sheet(updatedData);
-        const newWorkbook = xlsx.utils.book_new();
-        xlsx.utils.book_append_sheet(newWorkbook, newSheet, 'Sheet1');
-        const newFileBuffer = xlsx.write(newWorkbook, { type: 'buffer', bookType: 'xlsx' });
-
-        res.setHeader('Content-Disposition', 'attachment; filename=updatedFile.xlsx');
-        res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-        res.status(200).send(newFileBuffer);
-    } catch (error) {
-        console.error('Error processing file:', error);
-        res.status(500).send('Error processing file.');
-    }
-};
 
 const FileTesting = async (req, res, next) => {
     const { data, socket, mappingData, id, fileName } = req.body
 
     console.log(req.body);
+
+
+    
+    const credit = await creditModel.findOne({ user: id });
+
+    console.log(credit);
+
+    console.log("SOCKET DATA IS HERE = "+socket);
+
+
+    const result = processDataFromJson(data, mappingData);
+    if (result.length > credit.points) {
+        return res.status(400).send('Insufficient points');
+    }
+
+    if (result.length > credit.points) {
+        return res.status(400).send('Insufficient points');
+    }
+
+
+
+
 
     let newFileData = new fileModel({
         user: id,
@@ -272,26 +218,19 @@ const FileTesting = async (req, res, next) => {
 
     })
 
+
+
+
+
+
+
+
     newFileData = await newFileData.save();
 
 
 
 
 
-    const credit = await creditModel.findOne({ user: id });
-
-    console.log(credit);
-
-
-
-    const result = processDataFromJson(data, mappingData);
-    if (result.length > credit.points) {
-        return res.status(400).send('Insufficient points');
-    }
-
-    if (result.length > credit.points) {
-        return res.status(400).send('Insufficient points');
-    }
 
     //Result is checked now operation is started 
     const subarraySize = 5000;
@@ -307,18 +246,17 @@ const FileTesting = async (req, res, next) => {
     await credit.save();
 
     const updatedData = result.map((row, index) => {
-        result[index]["email"] = verifiedData[index]?.results.emails?.[0]?.email || 'invalid';
-        result[index]["certainty"] = verifiedData[index]?.results.emails?.[0]?.certainty || 'invalid'
-        result[index]["mxrecords"] = verifiedData[index]?.results.emails?.[0]?.mxRecords?.[0] || 'invalid'
-        result[index]["mxProvider"] = verifiedData[index]?.results.emails?.[0]?.mxProvider || 'invalid'
+        result[index]["email"] = verifiedData[index]?.results.emails?.[0]?.email || 'unknown';
+        result[index]["certainty"] = isCertaintyValid(verifiedData[index]?.results.emails?.[0]?.certainty) || 'invalid'
+       
 
 
         const data = {
             ...row,
-            email: verifiedData[index]?.results.emails?.[0]?.email || 'invalid',
-            certainty: verifiedData[index]?.results.emails?.[0]?.certainty || 'invalid',
-            mxrecords: verifiedData[index]?.results.emails?.[0]?.mxRecords?.[0] || 'invalid',
-            mxProvider: verifiedData[index]?.results.emails?.[0]?.mxProvider || 'invalid'
+            email: verifiedData[index]?.results.emails?.[0]?.email || 'unknown',
+            certainty: isCertaintyValid(verifiedData[index]?.results.emails?.[0]?.certainty) || 'invalid',
+            mxrecords: verifiedData[index]?.results.emails?.[0]?.mxRecords?.[0] || 'unknown',
+            mxProvider: verifiedData[index]?.results.emails?.[0]?.mxProvider || 'unknown'
         }
         return data;
 
@@ -426,11 +364,11 @@ const fileDownloadController = async (req, res, next) => {
             const data = {
                 'First Name': item.firstName,
                 'Last Name': item.lastName,
+                'Full Name':`${item.firstName+" "+item.lastName}`,
                 'Domain': item.domain,
                 'Vivalasales Email': email,
-                'Vivalasales Certainty': certainty,
-                'Vivalasales MX Records': mxrecords,
-                'Vivalasales MX Provider': mxProvider
+                'Vivalasales Email Status': certainty,
+             
 
             }
             return data;
@@ -623,4 +561,4 @@ const fileById = async (req, res, next) => {
 
 
 
-export { FileUpload, FileTesting, getAllFileData, fileDownloadController, getFileById, addRowFile, deleteRowFile, updateByIdCell, fileById };
+export { FileTesting, getAllFileData, fileDownloadController, getFileById, addRowFile, deleteRowFile, updateByIdCell, fileById };

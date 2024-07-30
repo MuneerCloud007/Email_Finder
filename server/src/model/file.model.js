@@ -5,6 +5,7 @@ const fileSchema=new mongoose.Schema({
     file_name:{type:String,required:true},
     status:{type:String,required:true},
     totalValid:{type:Number,required:true},
+  
     user:{type:mongoose.Schema.Types.ObjectId,
         ref:"User",
         required:true},
@@ -13,6 +14,7 @@ const fileSchema=new mongoose.Schema({
         ref:"fileTable"
         
     }],
+    enrichment:{type:String,default:"Level 1"},
 
     totalData:{type:Number,required:true},
     data: [{ type: mongoose.Schema.Types.Mixed, required: true }]

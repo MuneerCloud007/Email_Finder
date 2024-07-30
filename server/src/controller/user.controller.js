@@ -5,48 +5,57 @@ import ApiError from '../utils/ApiError.js';
 import FolderSchema from "../model/folder.model.js";
 import creditSchema from "../model/credit.model.js";
 
-
 const register = async (req, res, next) => {
     console.log(req.body);
-    const { name: username, email, password } = req.body;
+    const { firstName, lastName, email, password } = req.body;
+    
     try {
-        console.log(username)
-        let user = await User.findOne({ username });
-        if (user) {
+        // Validate required fields
+        if (!firstName || !lastName || !email || !password) {
+            return res.status(400).json({ error: 'All fields are required' });
+        }
+
+        // Check if user already exists
+        let existingUser = await User.findOne({ email });
+        if (existingUser) {
             throw ApiError.badRequest('User already exists');
         }
 
-        let newCredit = new creditSchema({
-
-        })
+        // Create and save new credit
+        let newCredit = new creditSchema({});
         newCredit = await newCredit.save();
-        console.log(newCredit);
+        console.log('New Credit Saved:', newCredit);
 
+        // Create and save new user
+        let user = new User({
+            firstName: firstName.trim(),
+            lastName: lastName.trim(),
+            email: email.trim(),
+            password: password.trim(),
+            credit: newCredit._id
+        });
+        user = await user.save();
+        console.log('User Saved:', user);
 
-        user = new User({ username, email, password, credit: newCredit });
-        await user.save();
-
-        newCredit["user"] = user["_id"];
+        // Update credit with user reference
+        newCredit.user = user._id;
         await newCredit.save();
 
-        const newFolder = new FolderSchema({
-            FolderName: "New Folder",
-            user: user,
-            checked: true
-        })
-        await newFolder.save()
-        res.status(200).json({ msg: 'User registered successfully' });
+        res.status(201).json({ msg: 'User registered successfully' });
     } catch (err) {
+        console.error('Registration Error:', err); // Improved error logging
         next(err);
     }
 };
-
 const login = async (req, res, next) => {
-    const { username, password } = req.body;
-    console.log(req.body);
+    let { email, password } = req.body;
+
+    email = email.trim();
+    password = password.trim();
+        console.log(req.body);
   
     try {
-        const user = await User.findOne({ username });
+        const user = await User.findOne({ email });
         if (!user) {
             throw ApiError.unauthorized('Invalid credentials');
         }

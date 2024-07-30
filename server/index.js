@@ -4,18 +4,15 @@ import path from 'path';
 import cookieParser from 'cookie-parser';
 import dotenv from 'dotenv';
 import { errorHandler } from './src/utils/errorHandler.js';
-import emailVerifier from './src/api/emailVerfier.api.js';
 import DbConnection from './src/utils/dbconnection.js';
 import userApi from './src/api/user.api.js';
-import folderApi from './src/api/folderData.api.js';
 import socketIoMiddleware from './src/utils/SocketMiddleware.js';
 import { Server } from 'socket.io';
 import { createServer } from 'http';
 import { fileURLToPath } from 'url';
 import fileUploadApi from './src/api/fileUpload.api.js';
 import creditApi from './src/api/credit.api.js';
-import autoWebscraping from './src/api/autoWebscraping.api.js';
-import api from './src/api/emailVerfier.api.js';
+
 
 dotenv.config();
 
@@ -87,18 +84,6 @@ io.on('connection', (socket) => {
   console.log('New client connected:', socket.id);
 
 
-   // Check if the room exists
-   const roomExists = io.sockets.adapter.rooms.has(uniqueRoom);
-
-   if (roomExists) {
-     console.log(`Room ${uniqueRoom} exists. Adding socket ${socket.id} to the room.`);
-   } else {
-     console.log(`Room ${uniqueRoom} does not exist. Creating and adding socket ${socket.id} to the room.`);
-   }
- 
-
-  // Join the unique room
-  socket.join(uniqueRoom);
 
   socket.on('disconnect', (reason) => {
     console.log('Client disconnected:', reason);
@@ -123,11 +108,8 @@ app.use(socketIoMiddleware(io));
 
 // API routes
 app.use('/api/v1/user', userApi);
-app.use('/api/v1/emailVerifier', emailVerifier);
-app.use('/api/v1/folder', folderApi);
 app.use('/api/v1/file', fileUploadApi);   ////  ""
 app.use('/api/v1/credit', creditApi);
-api.use('/api/v1/autoWebscraping', autoWebscraping);
 
 // Route to emit message
 app.get('/emit-message', (req, res) => {

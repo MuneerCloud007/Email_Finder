@@ -4,15 +4,19 @@ import creditSchema from "./credit.model.js";
 import jwt from 'jsonwebtoken';
 
 const userSchema = new mongoose.Schema({
-    username: {
+    firstName: {
         type: String,
         required: true,
-        unique: true,
     },
+    lastName:{
+        type:String,
+        required:true
+    },
+
     email: {
         type: String,
         required: true,
-        unique: true,
+        unique: [true,"Email already exists"],
     },
     password: {
         type: String,
