@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { IoIosArrowRoundBack } from "react-icons/io";
-import { Typography,Card, CardHeader,Chip } from "@material-tailwind/react";
+import { Typography,Card, CardHeader,Chip,CardBody,CardFooter,List,ListItem, ListItemSuffix} from "@material-tailwind/react";
 import SecondTable from "../RightSide/RightSideDashboard"
 import { Api1 } from '../../../features/api/Api';
 import Skeleton from 'react-loading-skeleton';
 import 'react-loading-skeleton/dist/skeleton.css';
+import { format } from 'date-fns';
 
 const Tag = ({ label, color = 'blue', onClick }) => {
     const colorClasses = {
@@ -29,6 +30,18 @@ const Tag = ({ label, color = 'blue', onClick }) => {
       />
     );
   };
+
+const formatDate=(isoString)=>{
+  console.log(isoString)
+const date = new Date(isoString);
+
+console.log("formatDate");
+console.log(date);
+
+// Format as "yy-MM-dd hh:mm:ss a"
+const formattedDate = format(date, 'yy-MM-dd hh:mm:ss a');
+return formattedDate;
+}
 
 
 function FileById() {
@@ -62,7 +75,7 @@ function FileById() {
 
 
 
-console.log("GET THE FILE JSON");
+console.log("The file data is here :-");
 console.log(file)
 
 
@@ -103,6 +116,108 @@ console.log(file)
            </div>
          </div>
        </div>
+
+  { loading ?(
+     <Card className='w-[40%]'>
+     <CardBody>
+       <h1>
+         <Skeleton width={100} />
+       </h1>
+       <div className="divider"><Skeleton width={100} /></div>
+       <List>
+         {[...Array(5)].map((_, index) => (
+           <ListItem key={index}>
+             <Skeleton width={150} />
+             <ListItemSuffix>
+               <Skeleton width={50} />
+             </ListItemSuffix>
+           </ListItem>
+         ))}
+       </List>
+     </CardBody>
+     <CardFooter>
+       <Skeleton width={100} />
+     </CardFooter>
+   </Card>
+  ) :   
+    
+    
+    
+    <Card className=' w-[40%]'>
+        
+        <CardBody >
+          <h1>Stats</h1>
+          <div className="divider"></div>
+
+        <List>
+        <ListItem>
+          Total Records
+          <ListItemSuffix>
+            <Chip
+              value={file["totalData"]}
+              variant="ghost"
+              size="sm"
+              className="rounded-full"
+            />
+          </ListItemSuffix>
+        </ListItem>
+        <ListItem>
+        Valid
+          <ListItemSuffix>
+            <Chip
+              value={file["totalValid"]}
+              variant="ghost"
+              size="sm"
+              className="rounded-full"
+            />
+          </ListItemSuffix>
+        </ListItem>
+        <ListItem>
+          Invalid
+          <ListItemSuffix>
+            <Chip
+              value={file["totalData"]-file["totalValid"]}
+              variant="ghost"
+              size="sm"
+              className="rounded-full"
+            />
+          </ListItemSuffix>
+        </ListItem>
+        <ListItem>
+          Credits Consumed
+          <ListItemSuffix>
+            <Chip
+              value={file["totalValid"]}
+              variant="ghost"
+              size="sm"
+              className="rounded-full"
+            />
+          </ListItemSuffix>
+        </ListItem>
+        <ListItem>
+          Created Date
+          <ListItemSuffix>
+            <Chip
+              value={(file["createdAt"])?formatDate(file["createdAt"]):"Not found"}
+              variant="ghost"
+              size="sm"
+              className="rounded-full"
+            />
+          </ListItemSuffix>
+        </ListItem>
+      </List>
+
+
+        </CardBody>
+        <CardFooter>
+
+        </CardFooter>
+
+       </Card>}
+
+
+
+
  
        <div className='w-[90%] m-auto'>
          {loading ? (

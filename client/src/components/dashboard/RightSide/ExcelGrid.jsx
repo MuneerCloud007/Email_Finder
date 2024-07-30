@@ -24,13 +24,11 @@ ModuleRegistry.registerModules([
 
 const GridExample = ({ user, onGridReady, rowData, setRowData, handleOpen, dummyColumn, columnDefs, setColumnDefs, setNewDataFormat, fileId }) => {
     const gridRef = useRef();
-    let gridApi = useRef();
     const [addColTable, setColTable] = useState(false);
     const [addRowTable, setRowTable] = useState(false);
     const [inputData, setInputData] = useState({ col: "" });
     const onhandleColTable = () => setColTable(!addColTable);
     const onhandleRowTable = () => setRowTable(!addRowTable);
-    const containerStyle = useMemo(() => ({ width: '100%', height: '100%' }), []);
     const gridStyle = useMemo(() => ({ height: '100%', width: '100%' }), []);
     console.log(dummyColumn);
     console.log("Here the user is !!!");
@@ -50,14 +48,6 @@ const GridExample = ({ user, onGridReady, rowData, setRowData, handleOpen, dummy
 
 
 
-
-
-
-
-
-
-
-
     useEffect(() => {
         console.log("gridRef iS OUNTED");
         console.log(gridRef);
@@ -69,46 +59,7 @@ const GridExample = ({ user, onGridReady, rowData, setRowData, handleOpen, dummy
 
 
 
-
-
-
-    const updateRowData = (updatedData) => {
-        setRowData((prevRowData) =>
-            prevRowData.map((row) => (row.id === updatedData.id ? updatedData : row))
-        );
-    };
-
-    const updateColumnDefs = () => {
-        if (gridRef.current) {
-            const columnDefs = gridRef.current.columnApi.getAllColumns().map((col) => ({
-                headerName: col.colDef.headerName,
-                field: col.colDef.field,
-                editable: col.colDef.editable,
-                sortable: col.colDef.sortable,
-                resizable: col.colDef.resizable,
-            }));
-            setColumnDefs(columnDefs);
-        }
-    };
-
-
-    const onSelectionChanged = (params) => {
-        const selectedRows = params.api.getSelectedRows();
-        const selectedRowIds = selectedRows.map(row => row.id);
-        setRowData(rowData.filter(row => !selectedRowIds.includes(row.id)));
-    };
-
-
-    const selectColumn = (column) => {
-        gridRef.current.api.forEachNode((node) => {
-            const cellRange = {
-                rowStartIndex: node.rowIndex,
-                rowEndIndex: node.rowIndex,
-                columns: [column],
-            };
-            gridRef.current.api.addCellRange(cellRange);
-        });
-    };
+   
 
 
 
@@ -170,20 +121,7 @@ const GridExample = ({ user, onGridReady, rowData, setRowData, handleOpen, dummy
     console.log(gridRef.current)
 
 
-    const getUpdatedData = () => {
-        if (gridRef.current) {
-            const rowData = [];
-            gridRef.current.api.forEachNode(node => rowData.push(node.data));
-            console.log('Row Data:', rowData);
-            console.log(gridRef.current.api.getColumnDefs())
 
-
-
-
-
-
-        }
-    };
     const onButtonClick = () => {
         const selectedNodes = gridRef.current.api.getSelectedNodes();
         selectedNodes.forEach((vl) => {

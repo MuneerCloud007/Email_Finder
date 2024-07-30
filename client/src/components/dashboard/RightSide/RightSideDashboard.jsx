@@ -1,4 +1,3 @@
-import TableClientSideBlog from "../../TableComponent";
 import React, { useState, useEffect, useCallback } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { getAllEmailVerifier } from "../../../features/slice/emailVerifier";
@@ -56,9 +55,7 @@ console.log("FIELD_______________________________"+fileId);
 
   const handleOpen = () => setOpen(!open);
 
-  const dispatch = useDispatch();
-  const FolderData = useSelector((state) => state.emailVerifier.FolderData);
-  const EmailVerifierData = useSelector((state) => state.emailVerifier.EmailVerifier);
+
 
 
 
@@ -85,7 +82,7 @@ console.log("FIELD_______________________________"+fileId);
     console.log("GRID READY !!!!");
 
 
-    fetch('http://localhost:5000/api/v1/file/file/getById', {
+    fetch('https://test.onlylwc.com/api/v1/file/file/getById', {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
