@@ -294,6 +294,11 @@ const FileUploadComponent = () => {
             lastName: !lastNameColumn,
             companyName: !companyNameColumn,
         };
+
+        console.log("validation fields are here !!!!");
+        console.log(newErrors);
+
+
         setErrors(newErrors);
         return !newErrors.firstName && !newErrors.lastName && !newErrors.companyName;
     };
@@ -407,7 +412,10 @@ const FileUploadComponent = () => {
                                     onOpen={() => handleSelectOpen('firstName', true)}
                                     onClose={() => handleSelectOpen('firstName', false)}
                                     value={firstNameColumn}
-                                    onChange={(e) => handleOptionChange('firstName', e.target.value)}
+                                    onChange={(e) =>{ 
+                                        console.log("FIRST NAME IN SELECT = ");
+                                        console.log(e);
+                                        handleOptionChange('firstName', e)}}
                                     className="w-full"
                                     error={errors.firstName}
                                 >
@@ -428,7 +436,7 @@ const FileUploadComponent = () => {
                                     onOpen={() => handleSelectOpen('lastName', true)}
                                     onClose={() => handleSelectOpen('lastName', false)}
                                     value={lastNameColumn}
-                                    onChange={(e) => handleOptionChange('lastName', e.target.value)}
+                                    onChange={(e) => handleOptionChange('lastName', e)}
                                     className="w-full"
                                     error={errors.lastName}
                                 >
@@ -449,7 +457,7 @@ const FileUploadComponent = () => {
                                     onOpen={() => handleSelectOpen('companyName', true)}
                                     onClose={() => handleSelectOpen('companyName', false)}
                                     value={companyNameColumn}
-                                    onChange={(e) => handleOptionChange('companyName', e.target.value)}
+                                    onChange={(e) => handleOptionChange('companyName', e)}
                                     className="w-full"
                                     error={errors.companyName}
                                 >
