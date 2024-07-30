@@ -7,7 +7,7 @@ import { sampleData, headers } from './Sampledata';
 import { Api1, Api2, Api3 } from "../../../features/api/Api";
 import socketContextApi from '../../../contextApi/SocketContextApi';
 import { useDispatch, useSelector } from 'react-redux';
-import {Link} from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { FaFile } from 'react-icons/fa'; // Import the desired icon from react-icons
 
 
@@ -19,17 +19,29 @@ const WrapperTable = () => {
     const { loading, data, error } = useSelector((state) => state.file.FileData);
     const [rowData, setRowData] = useState([]);
     const [columnDefs, setColumnDefs] = useState([
-        { headerName: 'File Name', field: 'file_name',
+        {
+            headerName: 'File Name', field: 'file_name',
 
             cellRenderer: (params) => {
                 console.log("/file/${params}");
                 console.log(params);
+                if (params.data["status"] == "pending") {
+                    return (
+                        <>
+                            {params.value}
+                        </>
+                    )
 
-             return(   <Link to={`/file/${params.data["_id"]}`} className=' text-blue-600'>
-                    {params.value}
-                </Link>)
+                }
+                else {
+                    return (<Link to={`/file/${params.data["_id"]}`} className=' text-blue-600'>
+                        {params.value}
+                    </Link>)
+                }
+
             }
-         },
+
+        },
         { headerName: 'Total Data', field: 'totalData' },
         { headerName: 'Found', field: 'totalValid' },
         { headerName: 'Status', field: 'status' },
@@ -37,8 +49,21 @@ const WrapperTable = () => {
         {
             headerName: 'Download',
             cellRenderer: (params) => (
-                <button onClick={() => handleDownload(params.data["_id"])} className=' text-blue-700'>
-                    Download
+                <button onClick={() => {
+                    if(params.data["status"] == "pending"){
+                        return <>
+                        <span>Loading</span>
+                        </>
+
+                    }
+                    else{
+                    handleDownload(params.data["_id"])
+                    }
+                    
+                    }} className={`${params.data["status"]=="pending"?'text-gray-600':' text-blue-700'}`}>
+
+
+                   { (params.data["status"] == "pending")?"Loading":"Download"}
                 </button>
             )
         }
@@ -74,7 +99,7 @@ const WrapperTable = () => {
 
 
 
-    
+
     };
 
     useEffect(() => {
@@ -101,7 +126,7 @@ const WrapperTable = () => {
     //         });
     // }, [data]);
 
-   
+
 
     return (
         <Table2
@@ -350,7 +375,7 @@ const FileUploadComponent = () => {
             <div
                 {...getRootProps()}
                 className={`border-2 border-dashed rounded-lg p-4 text-center cursor-pointer transition-all duration-300 ease-in-out
-                ${isDragging  ? 'border-green-500 bg-green-100' : 'border-blue-400 bg-white'}`}
+                ${isDragging ? 'border-green-500 bg-green-100' : 'border-blue-400 bg-white'}`}
                 style={{ position: 'relative' }}
             >
                 <input {...getInputProps()} />
