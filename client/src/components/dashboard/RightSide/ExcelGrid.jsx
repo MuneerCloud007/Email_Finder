@@ -4,15 +4,9 @@ import '@ag-grid-community/styles/ag-theme-quartz.css';
 import React, { StrictMode, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ClientSideRowModelModule } from "@ag-grid-community/client-side-row-model";
 import { ModuleRegistry } from "@ag-grid-community/core";
-import { ClipboardModule } from "@ag-grid-enterprise/clipboard";
-import { AllModules } from "@ag-grid-enterprise/all-modules";
 import { Api1, Api2 } from "../../../features/api/Api";
 import { writeFile, utils } from 'xlsx';
 
-import { MenuModule } from "@ag-grid-enterprise/menu";
-import { RangeSelectionModule } from "@ag-grid-enterprise/range-selection";
-import { MultiFilterModule } from "@ag-grid-enterprise/multi-filter";
-import { SetFilterModule } from "@ag-grid-enterprise/set-filter";
 import {
     Button,
     Dialog,
@@ -25,11 +19,7 @@ import {
 } from "@material-tailwind/react";
 ModuleRegistry.registerModules([
     ClientSideRowModelModule,
-    ClipboardModule,
-    MenuModule,
-    RangeSelectionModule,
-    MultiFilterModule,
-    SetFilterModule,
+    ModuleRegistry
 ]);
 
 const GridExample = ({ user, onGridReady, rowData, setRowData, handleOpen, dummyColumn, columnDefs, setColumnDefs, setNewDataFormat, fileId }) => {
