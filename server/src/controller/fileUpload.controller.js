@@ -245,20 +245,25 @@ const FileTesting = async (req, res, next) => {
     credit.points = Math.max(0, credit.points - count);
     await credit.save();
 
+    console.log("RESULTED PROJECT BEFORE OPERATION");
+    console.log(result);
+
     const updatedData = result.map((row, index) => {
         result[index]["email"] = verifiedData[index]?.results.emails?.[0]?.email || 'unknown';
         result[index]["certainty"] = isCertaintyValid(verifiedData[index]?.results.emails?.[0]?.certainty) || 'invalid'
+        result[index]["mxrecords"] = verifiedData[index]?.results.emails?.[0]?.mxRecords?.[0] || 'unknown',
+        result[index]["mxProvider"] =verifiedData[index]?.results.emails?.[0]?.mxProvider || 'unknown'
        
 
 
-        const data = {
-            ...row,
+        const Newdata = {
+            ...data[index],
             email: verifiedData[index]?.results.emails?.[0]?.email || 'unknown',
             certainty: isCertaintyValid(verifiedData[index]?.results.emails?.[0]?.certainty) || 'invalid',
             mxrecords: verifiedData[index]?.results.emails?.[0]?.mxRecords?.[0] || 'unknown',
             mxProvider: verifiedData[index]?.results.emails?.[0]?.mxProvider || 'unknown'
         }
-        return data;
+        return Newdata;
 
 
     });
@@ -282,6 +287,9 @@ const FileTesting = async (req, res, next) => {
     newFileData.totalValid = foundSize;
     newFileData.status = "completed"
     newFileData = await newFileData.save();
+
+    console.log("NEW FIle DATA IS HERE PLS CHECK !!");
+    console.log(newFileData);
 
 
 
@@ -357,21 +365,21 @@ const fileDownloadController = async (req, res, next) => {
         const { userId, fileId } = req.body;
         const file = await fileModel.findById(fileId);
         if (!file) throw ApiError.badRequest("file not found");
-        file.data;
+
+        console.log("FIle download controller");
+        console.log(file.data);
         const data = file.data.map(item => {
-            const { mxProvider, certainty, mxrecords, email, ...rest } = item;
+            const { mxProvider, certainty, mxrecords, email, _id,...rest } = item;
 
             const data = {
-                'First Name': item.firstName,
-                'Last Name': item.lastName,
-                'Full Name':`${item.firstName+" "+item.lastName}`,
-                'Domain': item.domain,
+                
                 'Vivalasales Email': email,
                 'Vivalasales Email Status': certainty,
              
 
             }
-            return data;
+            
+            return {...rest,...data};
 
         });
 
