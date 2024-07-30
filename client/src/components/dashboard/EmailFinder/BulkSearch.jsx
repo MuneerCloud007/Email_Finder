@@ -4,63 +4,103 @@ import { useDropzone } from 'react-dropzone';
 import { Dialog, DialogBody, DialogFooter, DialogHeader, Button, Typography, Select, Option } from '@material-tailwind/react';
 import Table1 from '../Table/Table1';
 import { sampleData, headers } from './Sampledata';
-import {Api1,Api2,Api3} from "../../../features/api/Api";
+import { Api1, Api2, Api3 } from "../../../features/api/Api";
 import socketContextApi from '../../../contextApi/SocketContextApi';
 import { useDispatch, useSelector } from 'react-redux';
-import {getAllFileSlice} from "../../../features/slice/fileSlice";
-const WrapperTable=()=>{
-const dispatch=useDispatch();
-const user=JSON.parse(localStorage.getItem("user"));
-const {loading,data,error}=useSelector((state)=>state.file.FileData);
-    useEffect(()=>{
-        dispatch(getAllFileSlice({method:"get",url:`/api/v1/file/getAllFile/${user["userId"]}`}));
+import { FaFile } from 'react-icons/fa'; // Import the desired icon from react-icons
 
-    },[])
-    console.log("Wrapper Table !!!");
-    console.log(data);
+import { getAllFileSlice } from "../../../features/slice/fileSlice";
+const WrapperTable = () => {
+    const dispatch = useDispatch();
+    const user = JSON.parse(localStorage.getItem("user"));
+    const { loading, data, error } = useSelector((state) => state.file.FileData);
+    useEffect(() => {
+        dispatch(getAllFileSlice({ method: "get", url: `/api/v1/file/getAllFile/${user["userId"]}` }));
+
+    }, [])
+  
 
     return (
         <Table1
-                isLoading={loading}
-                data={data || []}
-                headers={headers}
-                loadingTag="Loading"
-                processedCount={32}
-                totalCount={50}
-                validCount={23}
-                downloadClickId={(fileId) => {
-                    // Implement the download functionality here
-                    console.log("Download file with ID:", fileId);
-                    const user=JSON.parse(localStorage.getItem("user"));
+            isLoading={loading}
+            data={data || []}
+            headers={headers}
+            loadingTag="Loading"
+            processedCount={32}
+            totalCount={50}
+            validCount={23}
+            downloadClickId={(fileId) => {
+                // Implement the download functionality here
+                console.log("Download file with ID:", fileId);
+                const user = JSON.parse(localStorage.getItem("user"));
 
-                    Api3({method:"post",url:"/api/v1/file/download/File",data:{
-                        "fileId":fileId,
-                        "userId":user["userId"]
-                    }}).then((data)=>data.data).then(async(response)=>{
-                        console.log("Api3 response !!!");
-                        console.log(response)
-                        const blob = response;
-                        const url = window.URL.createObjectURL(blob);
-                        const a = document.createElement('a');
-                        a.style.display = 'none';
-                        a.href = url;
-                        a.download = 'file.xlsx'; // You can dynamically set the file name
-                        document.body.appendChild(a);
-                        a.click();
-                        window.URL.revokeObjectURL(url);
-
-
-                    }).catch((err)=>{
-                        console.log(err);
-                    })
+                Api3({
+                    method: "post", url: "/api/v1/file/download/File", data: {
+                        "fileId": fileId,
+                        "userId": user["userId"]
+                    }
+                }).then((data) => data.data).then(async (response) => {
+                    console.log("Api3 response !!!");
+                    console.log(response)
+                    const blob = response;
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.style.display = 'none';
+                    a.href = url;
+                    a.download = 'file.xlsx'; // You can dynamically set the file name
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(url);
 
 
-                    
-                  }
-                }
-            />
+                }).catch((err) => {
+                    console.log(err);
+                })
+
+
+
+            }
+            }
+        />
     )
 }
+
+
+const InsufficientCreditModal = ({ isOpen, handleClose }) => {
+    return (
+        <Dialog open={isOpen} handler={handleClose}>
+            <DialogHeader>Insufficient Credits</DialogHeader>
+            <DialogBody>
+                <p>You do not have enough credits to perform this action. Please purchase more credits to continue.</p>
+            </DialogBody>
+            <DialogFooter>
+                <Button variant="text" color="red" onClick={handleClose}>
+                    Close
+                </Button>
+                <Button variant="gradient" color="blue" onClick={() => alert('Redirect to purchase page')}>
+                    Buy Credits
+                </Button>
+            </DialogFooter>
+        </Dialog>
+    );
+};
+
+const InvalidFileTypeModal = ({ isOpen, handleClose }) => {
+    return (
+        <Dialog open={isOpen} handler={handleClose}>
+            <DialogHeader>Invalid File Type</DialogHeader>
+            <DialogBody>
+                <p>Please upload a valid .xls or .csv file.</p>
+            </DialogBody>
+            <DialogFooter>
+                <Button variant="text" color="red" onClick={handleClose}>
+                    Close
+                </Button>
+            </DialogFooter>
+        </Dialog>
+    );
+};
+
 
 
 
@@ -78,46 +118,83 @@ const FileUploadComponent = () => {
     const [totalCount, setTotalCount] = useState(0);
     const [validCount, setValidCount] = useState(12); // Initial valid count, can be dynamic
     const [cleanedData, setCleanedData] = useState([]);
-    const initalError={
+    const {Credit} = useSelector(state => state.emailVerifier);
+
+    const initalError = {
         firstName: false,
         lastName: false,
         companyName: false,
     }
-    const {socket}=useContext(socketContextApi);
-    
+
+    const { socket } = useContext(socketContextApi);
+    const [InsufficientCredit, setInsufficientCredit] = useState(false);
+    const [InvalidFileType,setInvalidFileType]=useState(false);
+    const [isDragging, setIsDragging] = useState(false);
+
+
+    const handleInsufficientCredit = () => setInsufficientCredit(!InsufficientCredit);
+    const handleInvalidFileType=()=>setInvalidFileType(!InvalidFileType);
+
 
     const [errors, setErrors] = useState(initalError);
 
-    const onDrop = useCallback((acceptedFiles) => {
-        const file = acceptedFiles[0];
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            const data = new Uint8Array(e.target.result);
-            const workbook = XLSX.read(data, { type: 'array' });
-            const firstSheetName = workbook.SheetNames[0];
-            const worksheet = workbook.Sheets[firstSheetName];
-            const headers = XLSX.utils.sheet_to_json(worksheet, { header: 1 })[0];
-            setColumns(headers);
-            setFile(file);
-            setOpen(true);
-        };
-        reader.readAsArrayBuffer(file);
+    const onDrop = useCallback((acceptedFiles,fileRejections) => {
+        const file = acceptedFiles[0]; //use type if the file is other than xls or excel then console it
+
+        console.log(file["path"].endsWith('.xlsx'));
+
+        if (file["path"].endsWith('.xlsx') || file["path"].endsWith('.csv')) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, { type: 'array' });
+                const firstSheetName = workbook.SheetNames[0];
+                const worksheet = workbook.Sheets[firstSheetName];
+                const headers = XLSX.utils.sheet_to_json(worksheet, { header: 1 })[0];
+                setColumns(headers);
+                setFile(file);
+                setOpen(true);
+            };
+            reader.readAsArrayBuffer(file); 
+
+        }
+        else{
+            setInvalidFileType(true)
+        }
+
+
+        console.log("File rejection catch it !!!");
+
+
+
+
+
+
+
+
+      
     }, []);
 
-    const { getRootProps, getInputProps } = useDropzone({ onDrop, accept: '.csv, .xlsx' });
-
-    useEffect(()=>{
-        if(!open){
+    const { getRootProps, getInputProps } = useDropzone({
+        onDrop,
+        accept: '.xls,.csv',
+        onDragEnter: () => setIsDragging(true),
+        onDragLeave: () => setIsDragging(false),
+        onDropAccepted: () => setIsDragging(false),
+        onDropRejected: () => setIsDragging(false)
+    });
+    useEffect(() => {
+        if (!open) {
             setErrors(initalError);
         }
-    },[open])
+    }, [open])
 
     useEffect(() => {
         if (columns.length > 0) {
             const findColumn = (prefixes) => columns.find(col => prefixes.some(prefix => col.toLowerCase().startsWith(prefix.toLowerCase())));
-            setFirstNameColumn(findColumn(['firstName', 'FirstName', 'firstname','Firstname','FIRSTNAME']) || '');
-            setLastNameColumn(findColumn(['lastName', 'LastName', 'lastname','Lastname','LASTNAME']) || '');
-            setCompanyNameColumn(findColumn(['company', 'Company', 'domain', 'Domain','website','Website' ,'WEBSITE']) || '');
+            setFirstNameColumn(findColumn(['firstName', 'FirstName', 'firstname', 'Firstname', 'FIRSTNAME']) || '');
+            setLastNameColumn(findColumn(['lastName', 'LastName', 'lastname', 'Lastname', 'LASTNAME']) || '');
+            setCompanyNameColumn(findColumn(['company', 'Company', 'domain', 'Domain', 'website', 'Website', 'WEBSITE']) || '');
         }
     }, [columns]);
 
@@ -149,7 +226,7 @@ const FileUploadComponent = () => {
     const handleSubmit = () => {
         if (validateFields()) {
             const reader = new FileReader();
-            reader.onload = (e) => {
+            reader.onload = async(e) => {
                 const data = new Uint8Array(e.target.result);
                 const workbook = XLSX.read(data, { type: 'array' });
                 const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
@@ -158,13 +235,30 @@ const FileUploadComponent = () => {
 
                 // Remove duplicates
                 const cleanedData = removeDuplicates(jsonData);
+                console.log("Cleaned data is here !!!!");
                 console.log(cleanedData);
                 setCleanedData(cleanedData);
                 setTotalCount(jsonData.length);
 
                 console.log("REMOVED THE DUPLICATE DATA " + cleanedData.length);
-                setOpen(false);
-                setResultOpen(true);
+                console.log(Credit["data"]["points"]);
+
+                //We check it by credit system !!!!
+
+                if(Credit["data"]["points"]>cleanedData.length){
+
+                    setOpen(false);
+                    setResultOpen(true);
+                }
+                else{
+                    handleInsufficientCredit();
+                }
+
+
+
+
+
+
             };
             reader.readAsArrayBuffer(file);
         }
@@ -195,7 +289,7 @@ const FileUploadComponent = () => {
         e.stopPropagation(); // Prevents the dialog from closing
     };
 
-const user=JSON.parse(localStorage.getItem("user"));
+    const user = JSON.parse(localStorage.getItem("user"));
 
 
     return (
@@ -204,14 +298,27 @@ const user=JSON.parse(localStorage.getItem("user"));
                 <Typography variant="h3">Bulk Search</Typography>
             </div>
             <div
-                {...getRootProps()}
-                className="border-2 border-dashed border-blue-400 rounded-lg p-4 text-center cursor-pointer"
-            >
-                <input {...getInputProps()} />
-                <div className="text-2xl mb-2">📁</div>
-                <p className="text-blue-500 font-semibold">Load a file</p>
-                <p className="text-gray-500">or drag and drop a .xls or .csv file</p>
-            </div>
+            {...getRootProps()}
+            className={`border-2 border-dashed rounded-lg p-4 text-center cursor-pointer transition-all duration-300 ease-in-out
+                ${isDragging || isLoading ? 'border-green-500 bg-green-100' : 'border-blue-400 bg-white'}`}
+            style={{ position: 'relative' }}
+        >
+            <input {...getInputProps()} />
+           
+                <div>
+<div className="text-2xl mb-2 text-center flex items-center justify-center" style={{color:"#9CA3AF"}}>
+                <FaFile /> {/* Replace emoji with React icon */}
+            </div>                    <p className="text-blue-500 font-semibold">Load a file</p>
+                    <p className="text-gray-500">or drag and drop a .xls or .csv file</p>
+                    <p className="text-gray-500 text-sm">File size upto 10Mb</p>
+                </div>
+            
+            {isDragging  && (
+                <div className="absolute inset-0 flex items-center justify-center bg-gray-200 opacity-75 rounded-lg">
+                    <p className="text-gray-600 font-semibold">Drop here to upload</p>
+                </div>
+            )}
+        </div>
 
             <Dialog open={open} handler={() => { }} size={"md"} onClose={handleDialogClose}>
                 <div className="grid grid-cols-1 divide-y w-full p-3">
@@ -312,26 +419,27 @@ const user=JSON.parse(localStorage.getItem("user"));
                             console.log(socket["id"]);
                             console.log("Cleaned Data API 1");
                             console.log(cleanedData);
-                            const mappingData={firstNameColumn,lastNameColumn,companyNameColumn};
+                            const mappingData = { firstNameColumn, lastNameColumn, companyNameColumn };
                             console.log("Maping data");
                             console.log(mappingData);
-                            Api1('/api/v1/file/uploadTesting','post',
-                                {data:cleanedData,socket:socket["id"],
-                                    mappingData:mappingData,
-                                    id:user["userId"],fileName:file ? file.name:"File-1"
-                                
+                            Api1('/api/v1/file/uploadTesting', 'post',
+                                {
+                                    data: cleanedData, socket: socket["id"],
+                                    mappingData: mappingData,
+                                    id: user["userId"], fileName: file ? file.name : "File-1"
+
                                 })
-                            .then(response => response.data)
+                                .then(response => response.data)
                                 .then(data => {
-                                    console.log( data);
+                                    console.log(data);
                                     setIsLoading(false);
                                 })
                                 .catch((error) => {
                                     console.error('Error:', error);
                                     setIsLoading(false);
                                 });
-                                setResultOpen(false)
-                                setIsLoading(true);
+                            setResultOpen(false)
+                            setIsLoading(true);
 
                         }}>Start Enrichment</Button>
 
@@ -341,10 +449,18 @@ const user=JSON.parse(localStorage.getItem("user"));
                     </DialogFooter>
                 </div>
             </Dialog>
+            <InsufficientCreditModal
+                isOpen={InsufficientCredit}
+                handleClose={handleInsufficientCredit}
+            />
+            <InvalidFileTypeModal
+            isOpen={InvalidFileType}
+            handleClose={handleInvalidFileType}
+            />
             <div style={{ marginTop: "4rem" }}></div>
-            <WrapperTable/>
-            
-          
+            <WrapperTable />
+
+
         </div>
     );
 };

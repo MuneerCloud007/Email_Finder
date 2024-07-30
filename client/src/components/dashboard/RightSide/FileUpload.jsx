@@ -3,6 +3,17 @@ import * as XLSX from 'xlsx';
 import { useDropzone } from 'react-dropzone';
 import { Dialog, DialogBody, DialogFooter, DialogHeader, Button, Typography, Select, Option } from '@material-tailwind/react';
 
+
+
+
+
+  
+  
+
+
+
+
+
 const FileUploadComponent = () => {
     const [open, setOpen] = useState(false);
     const [columns, setColumns] = useState([]);
@@ -10,6 +21,10 @@ const FileUploadComponent = () => {
     const [firstNameColumn, setFirstNameColumn] = useState('');
     const [lastNameColumn, setLastNameColumn] = useState('');
     const [companyNameColumn, setCompanyNameColumn] = useState('');
+    const [InsufficientCredit,setInsufficientCredit]=useState(false);
+
+    const handleInsufficientCredit=()=>setInsufficientCredit(!InsufficientCredit);
+
 
     const onDrop = useCallback((acceptedFiles) => {
         const file = acceptedFiles[0];
@@ -91,6 +106,12 @@ const FileUploadComponent = () => {
                     </DialogFooter>
                 </div>
             </Dialog>
+            <InsufficientCreditModal
+            handleClose={handleInsufficientCredit}
+            isOpen={InsufficientCredit}
+            
+            
+            />
         </div>
     );
 };

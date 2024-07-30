@@ -5,6 +5,7 @@ const headers = [
     { column: "totalValid", label: "Found" },
     { column: "status", label: "Status" },
     {column:"download",label:"Download"},
+    {column:"enrichment",label:"Enrichment Level"}
     
   ];
   

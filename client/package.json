@@ -47,9 +47,11 @@
     "react-spreadsheet": "^0.9.5",
     "react-spreadsheet-grid": "^2.3.1",
     "react-table": "^7.8.0",
+    "react-toastify": "^10.0.5",
     "scheduler": "^0.23.2",
     "socket.io-client": "^4.7.5",
-    "xlsx": "^0.18.5"
+    "xlsx": "^0.18.5",
+    "yup": "^1.4.0"
   },
   "devDependencies": {
     "@types/react": "^18.3.3",

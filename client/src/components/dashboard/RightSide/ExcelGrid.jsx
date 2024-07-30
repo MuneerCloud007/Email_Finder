@@ -51,7 +51,7 @@ const GridExample = ({ user, onGridReady, rowData, setRowData, handleOpen, dummy
     console.log(columnDefs);
     const defaultColDef = useMemo(() => {
         return {
-            editable: true,
+            editable: false,
             flex: 1,
             minWidth: 100,
             filter: true,
@@ -385,18 +385,10 @@ const GridExample = ({ user, onGridReady, rowData, setRowData, handleOpen, dummy
                             }
                         }
                     }}>
-                        EXPORT
+                        EXPORT ALL
                     </Button>
                 </div>
-                <div className=' flex justify-end px-2 py-3 gap-3'>
 
-                    <Button className="mt-4" color="teal" onClick={onhandleRowTable}>
-                        Add Row
-                    </Button>
-                    <Button onClick={onButtonClick} className="mt-4" color="red">Delete Rows</Button>
-
-
-                </div>
 
 
                 <div style={gridStyle} className="ag-theme-quartz py-2 ">
@@ -405,24 +397,14 @@ const GridExample = ({ user, onGridReady, rowData, setRowData, handleOpen, dummy
                         rowData={rowData}
                         columnDefs={columnDefs}
                         defaultColDef={defaultColDef}
-                        overflow-auto
                         pagination={true}
                         paginationPageSize={5}
-                        domLayout='damLayout'
+                        domLayout='autoHeight'
                         enableRangeSelection={true}
                         suppressMultiRangeSelection={true}
-                        onCellValueChanged={onCellValueChanged}
-                        onRowDataUpdated={(e) => {
-                            console.log(e);
-                        }}
-
-
                         onGridReady={onGridReady}
-
-
-
                         animateRows={true}
-                        rowSelection={"multiple"}
+                    // Remove or set rowSelection to 'single' to remove checkboxes
                     />
                 </div>
             </div>
