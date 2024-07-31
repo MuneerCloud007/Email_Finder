@@ -8,7 +8,7 @@ import creditSchema from "../model/credit.model.js";
 const register = async (req, res, next) => {
     console.log(req.body);
     const { firstName, lastName, email, password } = req.body;
-    
+
     try {
         // Validate required fields
         if (!firstName || !lastName || !email || !password) {
@@ -52,8 +52,8 @@ const login = async (req, res, next) => {
 
     email = email.trim();
     password = password.trim();
-        console.log(req.body);
-  
+    console.log(req.body);
+
     try {
         const user = await User.findOne({ email });
         if (!user) {
@@ -74,11 +74,11 @@ const login = async (req, res, next) => {
         console.log("I am inside the login controller !!");
         console.log(user);
 
-      
-            
 
 
-        
+
+
+
         res.json({ message: "user login successfully", token, refreshToken, userId: user["_id"] });
     } catch (err) {
         next(err);
@@ -149,6 +149,48 @@ const getUserData = async (req, res, next) => {
 
     }
 }
+const forgotPassword = async (req, res, next) => {
+    try {
+        let { email, newpassword, oldpassword } = req.body;
+        email = email.trim();
+        newpassword = newpassword.trim();
+        oldpassword = oldpassword.trim();
+
+        // Validate inputs
+        if (!email || !oldpassword || !newpassword) {
+            throw ApiError.badRequest("Missed email or new password credentials");
+        }
+
+        // Find the user
+        const user = await User.findOne({ email });
+        if (!user) {
+            throw ApiError.badRequest("User not found");
+        }
+
+        // Verify old password
+        const isValidPassword = await user.comparePassword(oldpassword);
+        if (!isValidPassword) {
+            throw ApiError.badRequest("Invalid old password");
+        }
+
+        // Hash new password
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(newpassword, salt);
+        
+        // Update user with new password
+        await User.findByIdAndUpdate(
+            user._id,
+            { password: hashedPassword },
+            { new: true }  // This option returns the updated document
+        );
+
+        // Send success response
+        res.status(200).json({ message: "Password is updated!!!" });
+    } catch (error) {
+        console.error('Error in forgotPassword controller:', error);
+        next(error); // Pass errors to global error handler
+    }
+};
 
 
 const updatePassword = async (req, res, next) => {
@@ -184,4 +226,4 @@ const updatePassword = async (req, res, next) => {
         next(err);
     }
 };
-export { register, refresh, logout, login, getUserData,updatePassword };
+export { register, refresh, logout, login, getUserData, updatePassword, forgotPassword };

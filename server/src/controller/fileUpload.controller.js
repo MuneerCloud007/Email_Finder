@@ -337,6 +337,7 @@ const getFileById = async (req, res, next) => {
     const { fileId } = req.body;
     try {
         console.log("FILE ID IS HERE = " + fileId);
+        console.log("I am in localserver !!!!!");
         if (!fileId) {
             throw ApiError.badRequest("FILE ID IS NOT PRESENT !!!!");
 
