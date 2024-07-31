@@ -291,11 +291,13 @@ const GridExample = ({ user, onGridReady, rowData, setRowData, handleOpen, dummy
                             if (rowCount > 0) {
                                 const newData = rowData.reduce((newValue, value) => {
                                     newValue.push({
-                                        firstName: value["firstName"],
-                                        lastName: value["lastName"],
-                                        email: value["email"],
-                                        domain: value["domain"],
-                                        certainty: value["certainty"]
+                                        FirstName: value["firstName"],
+                                        LastName: value["lastName"],
+                                        Domain: value["domain"],
+                                        Email: value["email"],
+                                       "Email Status": value["certainty"],
+                                       MxProvider:value["mxProvider"],
+                                       MxRecord:value["mxRecord"]
                                     });
                                     return newValue;
                                 }, []);

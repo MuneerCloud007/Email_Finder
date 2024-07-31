@@ -27,20 +27,26 @@ function ReactJsClientSideTable({fileId}) {
 
     {
       field: "firstName", 
+      headerName: "First Name",
   
 
     },
     {
-      field: "lastName"
+      field: "lastName",
+      headerName: 'Last Name',
     },
     {
       field: "domain",
+      headerName: 'Domain',
     },
    
 
-    { field: "email", },
-    {field:"certainty",},
-    {field:"mxProvider"},{field:"mxRecord"}
+    { field: "email", headerName: 'Email', },
+    {field:"certainty",
+
+      headerName: 'Email Status',
+    },
+    {field:"mxProvider", headerName: 'Mx Provider',},{field:"mxRecord",  headerName: 'Mx Record',}
 
 
 
