@@ -159,6 +159,9 @@ export default function SignUp() {
             Already have an account?{' '}
             <Link
             to={"/"}
+            onClick={()=>{
+              location.href="/"
+            }}
               title=""
               className="font-medium text-black transition-all duration-200 hover:underline"
             >

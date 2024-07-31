@@ -62,6 +62,8 @@ export const updatePasswordSlice = createAsyncThunk('auth/updatePassword', async
 
 })
 
+
+
 export const getUserData = createAsyncThunk('auth/getUserData', async (credentials, thunkAPI) => {
   try {
     const { url, method } = credentials;

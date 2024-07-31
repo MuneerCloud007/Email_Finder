@@ -20,6 +20,7 @@ import Store from "./Store.js";
 import { Provider } from 'react-redux';
 import { ThemeProvider } from "@material-tailwind/react";
 import FileById from './components/dashboard/File/FileById.jsx';
+import ForgotPassword from './components/signin/ForgotPassword.jsx';
 
 const router = createBrowserRouter([
   {
@@ -34,6 +35,11 @@ const router = createBrowserRouter([
       {
         path: "/signup",
         element: <SignUp />
+      },
+      {
+        path:"/forgotPassword",
+        element:<ForgotPassword/>
+
       },
       {
         path: "/dashboard",

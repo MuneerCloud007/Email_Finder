@@ -105,7 +105,10 @@ export default function SignIn() {
           <p className="mt-2 text-center text-sm text-gray-600 ">
             Don&apos;t have an account?{' '}
             <Link
-              to={"/signup"}
+              onClick={()=>{
+                location.href="/signup"
+
+              }}
               title="Sign Up"
               className="font-semibold text-black transition-all duration-200 hover:underline"
             >
@@ -142,10 +145,15 @@ export default function SignIn() {
                     {' '}
                     Password{' '}
                   </label>
-                  <a href="#" title="" className="text-sm font-semibold text-black hover:underline">
+                  <Link 
+                  onClick={()=>{
+                    location.href="/forgotPassword"
+                  }}
+                  
+                  title="" className="text-sm font-semibold text-black hover:underline">
                     {' '}
                     Forgot password?{' '}
-                  </a>
+                  </Link>
                 </div>
                 <div className="mt-2">
                   <input
