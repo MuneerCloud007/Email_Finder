@@ -429,7 +429,7 @@ const FileUploadComponent = () => {
                 )}
             </div>
 
-            <Dialog open={open} handler={() => { }} size={"md"} onClose={handleDialogClose}>
+            <Dialog open={open} handler={() => { }} size={"xl"} onClose={handleDialogClose}>
                 <div className="grid grid-cols-1 divide-y w-full p-3">
                     <DialogHeader>{file ? file.name : 'No file selected'}</DialogHeader>
                     <DialogBody>
@@ -483,7 +483,7 @@ const FileUploadComponent = () => {
                             <div>
                                 <Typography variant="h6">
                                     Domain or Company Name <span className='text-red-500'>*</span>
-                                    <span className='font-normal text-green-600 ml-2'>company domain brings the best results</span>
+                                    <span className='font-normal text-green-600 ml-2'>The company's domain generates the best results, yielding 20% more emails</span>
                                 </Typography>
                                 <Select
                                     open={selectOpen.companyName}
