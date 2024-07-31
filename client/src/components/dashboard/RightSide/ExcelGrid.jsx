@@ -318,10 +318,7 @@ const GridExample = ({ user, onGridReady, rowData, setRowData, handleOpen, dummy
                     }}>
                         EXPORT ALL
                     </Button>
-                    <Button className="mt-4" color="purple" onClick={() => alert("Next Level enrichment")}>
-                        Next Level Enrichmenet
-
-                    </Button>
+                   
 
                     <div className="relative group inline-block">
                         <Button className="mt-4" color="purple" onClick={() => alert("Next Level enrichment")}>
