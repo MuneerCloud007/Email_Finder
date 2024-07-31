@@ -59,7 +59,7 @@ const GridExample = ({ user, onGridReady, rowData, setRowData, handleOpen, dummy
 
 
 
-   
+
 
 
 
@@ -284,7 +284,7 @@ const GridExample = ({ user, onGridReady, rowData, setRowData, handleOpen, dummy
                     </DialogFooter>
                 </Dialog>
                 <div className="div flex justify-end pr-2 pb-4 gap-3">
-                    
+
                     <Button className="mt-4" color="green" onClick={() => {
                         if (gridRef.current && gridRef.current.api) {
                             const rowCount = gridRef.current.api.getDisplayedRowCount();
@@ -296,9 +296,9 @@ const GridExample = ({ user, onGridReady, rowData, setRowData, handleOpen, dummy
                                         LastName: value["lastName"],
                                         Domain: value["domain"],
                                         Email: value["email"],
-                                       "Email Status": value["certainty"],
-                                       MxProvider:value["mxProvider"],
-                                       MxRecord:value["mxRecord"]
+                                        "Email Status": value["certainty"],
+                                        MxProvider: value["mxProvider"],
+                                        MxRecord: value["mxRecord"]
                                     });
                                     return newValue;
                                 }, []);
@@ -318,10 +318,22 @@ const GridExample = ({ user, onGridReady, rowData, setRowData, handleOpen, dummy
                     }}>
                         EXPORT ALL
                     </Button>
-                    <Button className="mt-4" color="purple" onClick={()=>alert("Next Level enrichment")}>
+                    <Button className="mt-4" color="purple" onClick={() => alert("Next Level enrichment")}>
                         Next Level Enrichmenet
 
                     </Button>
+
+                    <div className="relative group inline-block">
+                        <Button className="mt-4" color="purple" onClick={() => alert("Next Level enrichment")}>
+                            Next Level Enrichment
+                        </Button>
+                        <div className="opacity-0 w-72 p-2 bg-gray-200 text-gray-800 text-center text-xs rounded-lg py-2 absolute z-10 group-hover:opacity-100 group-hover:translate-y-[-10px] bottom-full left-1/2 transform -translate-x-1/2 mb-2 transition-all duration-300">
+                            Via Waterfall Enrichment we will again try to find and verify the Invalid and Not Found email ids
+                            <div className="absolute left-1/2 transform -translate-x-1/2 w-3 h-3 bg-gray-200 rotate-45 bottom-[-6px]"></div>
+                        </div>
+                    </div>
+
+
                 </div>
 
 
