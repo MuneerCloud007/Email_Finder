@@ -40,7 +40,7 @@ const formatDate = (isoString) => {
   console.log(date);
 
   // Format as "yy-MM-dd hh:mm:ss a"
-  const formattedDate = format(date, 'yy-MM-dd hh:mm:ss a');
+  const formattedDate = format(date, 'yy-MMMM-dd hh:mm a');
   return formattedDate;
 }
 
