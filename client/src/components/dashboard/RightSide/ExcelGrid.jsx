@@ -283,7 +283,8 @@ const GridExample = ({ user, onGridReady, rowData, setRowData, handleOpen, dummy
                         </Button>
                     </DialogFooter>
                 </Dialog>
-                <div className="div flex justify-end pr-2 pb-4">
+                <div className="div flex justify-end pr-2 pb-4 gap-3">
+                    
                     <Button className="mt-4" color="green" onClick={() => {
                         if (gridRef.current && gridRef.current.api) {
                             const rowCount = gridRef.current.api.getDisplayedRowCount();
@@ -316,6 +317,10 @@ const GridExample = ({ user, onGridReady, rowData, setRowData, handleOpen, dummy
                         }
                     }}>
                         EXPORT ALL
+                    </Button>
+                    <Button className="mt-4" color="purple" onClick={()=>alert("Next Level enrichment")}>
+                        Next Level Enrichmenet
+
                     </Button>
                 </div>
 

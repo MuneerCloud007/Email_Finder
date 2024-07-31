@@ -51,20 +51,20 @@ const WrapperTable = () => {
             headerName: 'Download',
             cellRenderer: (params) => (
                 <button onClick={() => {
-                    if(params.data["status"] == "pending"){
+                    if (params.data["status"] == "pending") {
                         return <>
-                        <span>Loading</span>
+                            <span>Loading</span>
                         </>
 
                     }
-                    else{
-                    handleDownload(params.data["_id"])
+                    else {
+                        handleDownload(params.data["_id"])
                     }
-                    
-                    }} className={`${params.data["status"]=="pending"?'text-gray-600':' text-blue-700'}`}>
+
+                }} className={`${params.data["status"] == "pending" ? 'text-gray-600' : ' text-blue-700'}`}>
 
 
-                   { (params.data["status"] == "pending")?"Loading":"Download"}
+                    {(params.data["status"] == "pending") ? "Loading" : "Download"}
                 </button>
             )
         }
@@ -108,7 +108,7 @@ const WrapperTable = () => {
 
     }, [])
 
- 
+
 
 
     return (
@@ -232,6 +232,14 @@ const FileUploadComponent = () => {
 
 
     }, []);
+
+    const onResetModal = useCallback(() => {
+        setFirstNameColumn('');
+        setLastNameColumn('');
+        setCompanyNameColumn('');
+
+
+    }, [])
 
     const { getRootProps, getInputProps } = useDropzone({
         onDrop,
@@ -359,7 +367,7 @@ const FileUploadComponent = () => {
         <div className="py-2 mb-6 px-3">
             <div className="m-6 flex w-[100%] justify-between mx-2">
                 <Typography variant="h3">Bulk Search</Typography>
-                <Button color="green" onClick={()=>{
+                <Button color="green" onClick={() => {
                     //downloadData
 
 
@@ -368,14 +376,14 @@ const FileUploadComponent = () => {
                     // Create a new workbook and append the worksheet
                     const wb = XLSX.utils.book_new();
                     XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
-                  
+
                     // Generate an Excel file buffer
                     const excelBuffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
-                  
+
                     // Create a Blob from the buffer
                     const dataBlob = new Blob([excelBuffer], { type: 'application/octet-stream' });
-                  
-                    
+
+
 
                     const url = window.URL.createObjectURL(dataBlob);
                     const a = document.createElement('a');
@@ -396,7 +404,7 @@ const FileUploadComponent = () => {
 
 
                 }}>Sample Download</Button>
-                
+
             </div>
             <div
                 {...getRootProps()}
@@ -433,10 +441,11 @@ const FileUploadComponent = () => {
                                     onOpen={() => handleSelectOpen('firstName', true)}
                                     onClose={() => handleSelectOpen('firstName', false)}
                                     value={firstNameColumn}
-                                    onChange={(e) =>{ 
+                                    onChange={(e) => {
                                         console.log("FIRST NAME IN SELECT = ");
                                         console.log(e);
-                                        handleOptionChange('firstName', e)}}
+                                        handleOptionChange('firstName', e)
+                                    }}
                                     className="w-full"
                                     error={errors.firstName}
                                 >
@@ -472,7 +481,10 @@ const FileUploadComponent = () => {
                                 )}
                             </div>
                             <div>
-                                <Typography variant="h6">Domain or Company Name</Typography>
+                                <Typography variant="h6">
+                                    Domain or Company Name <span className='text-red-500'>*</span>
+                                    <span className='font-normal text-green-600 ml-2'>company domain brings the best results</span>
+                                </Typography>
                                 <Select
                                     open={selectOpen.companyName}
                                     onOpen={() => handleSelectOpen('companyName', true)}
@@ -494,9 +506,15 @@ const FileUploadComponent = () => {
                             </div>
                         </div>
                     </DialogBody>
+
                     <DialogFooter>
                         <Button variant="text" color="red" onClick={() => setOpen(false)} className="mr-1">
                             Cancel
+                        </Button>
+                        <Button variant="text" color="gray" onClick={() => {
+                            onResetModal();
+                        }}>
+                            Reset
                         </Button>
                         <Button variant="text" color="blue" onClick={handleSubmit}>
                             Submit
