@@ -26,9 +26,8 @@ function ReactJsClientSideTable({fileId}) {
   const initailColumnDef = [
 
     {
-      field: "firstName", editable: true,
-      checkboxSelection: true,
-      headerCheckboxSelection: true,
+      field: "firstName", 
+  
 
     },
     {

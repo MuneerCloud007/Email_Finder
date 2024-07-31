@@ -9,6 +9,7 @@ import socketContextApi from '../../../contextApi/SocketContextApi';
 import { useDispatch, useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
 import { FaFile } from 'react-icons/fa'; // Import the desired icon from react-icons
+import downloadData from './DownloadData';
 
 
 import { getAllFileSlice } from "../../../features/slice/fileSlice";
@@ -107,25 +108,7 @@ const WrapperTable = () => {
 
     }, [])
 
-    // const onGridReady = useCallback((params) => {
-    //     fetch(`http://localhost:5000/api/v1/file/getAllFile/${user["userId"]}`, {
-    //         method: "GET",
-    //         headers: {
-    //             "Content-Type": "application/json"
-    //         },
-    //     })
-    //         .then((resp) => resp.json())
-    //         .then(({ data, success }) => {
-    //             console.log("DATA", data);
-    //             const newData=data.map((vl)=>({...vl,download:""}))
-    //             setRowData(newData || []); // Ensure `data` is properly set
-    //         })
-    //         .catch((err) => {
-    //             console.error(err);
-    //             setRowData([]);
-    //         });
-    // }, [data]);
-
+ 
 
 
     return (
@@ -374,8 +357,46 @@ const FileUploadComponent = () => {
 
     return (
         <div className="py-2 mb-6 px-3">
-            <div className="m-6">
+            <div className="m-6 flex w-[100%] justify-between mx-2">
                 <Typography variant="h3">Bulk Search</Typography>
+                <Button color="green" onClick={()=>{
+                    //downloadData
+
+
+                    const ws = XLSX.utils.json_to_sheet(downloadData);
+
+                    // Create a new workbook and append the worksheet
+                    const wb = XLSX.utils.book_new();
+                    XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
+                  
+                    // Generate an Excel file buffer
+                    const excelBuffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+                  
+                    // Create a Blob from the buffer
+                    const dataBlob = new Blob([excelBuffer], { type: 'application/octet-stream' });
+                  
+                    
+
+                    const url = window.URL.createObjectURL(dataBlob);
+                    const a = document.createElement('a');
+                    a.style.display = 'none';
+                    a.href = url;
+                    a.download = 'downloadSample.xlsx'; // You can dynamically set the file name
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+
+
+
+
+
+
+
+
+
+
+                }}>Sample Download</Button>
+                
             </div>
             <div
                 {...getRootProps()}
