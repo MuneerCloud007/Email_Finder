@@ -6,9 +6,9 @@ import "./App.css"
 import "./index.css"
 import io, { Socket } from 'socket.io-client';
 import { useDispatch } from "react-redux"
-import { addEmailVerifier,updateCredits } from "./features/slice/emailVerifier";
+import { addEmailVerifier, updateCredits,getCreditSlice } from "./features/slice/emailVerifier";
 import socketContextApi from "./contextApi/SocketContextApi";
-import {getAllFileSlice} from "./features/slice/fileSlice";
+import { getAllFileSlice } from "./features/slice/fileSlice";
 
 
 const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
@@ -23,7 +23,7 @@ function App() {
   }), [storedSocketId]);
 
   const dispatch = useDispatch();
-  const user=JSON.parse(localStorage.getItem("user"));
+  const user = JSON.parse(localStorage.getItem("user"));
 
 
   useEffect(() => {
@@ -57,34 +57,64 @@ function App() {
           console.log(data);
           dispatch(updateCredits(data.data));
         } else {
-            console.error('Failed to update credit:', data);
+          console.error('Failed to update credit:', data);
         }
-    });
-    socket.on("File_Pending",({message,success})=>{
-      if(success){
+      });
+      socket.on("File_Pending", ({ message, success }) => {
+        if (success) {
 
 
-        dispatch(getAllFileSlice({method:"get",url:`/api/v1/file/getAllFile/${user["userId"]}`}));
+          dispatch(getAllFileSlice({ method: "get", url: `/api/v1/file/getAllFile/${user["userId"]}` }));
 
 
-      }
-    })
+        }
+      })
 
-    socket.on("File_success",({message,success})=>{
-      console.log(message);
-      if(success){
+      socket.on("File_success", ({ message, success }) => {
+        console.log(message);
+        if (success) {
 
-        if(message["user"]==user['userId']){
-        dispatch(getAllFileSlice({method:"get",url:`/api/v1/file/getAllFile/${user["userId"]}`}));
-      }
-    }
+          if (message["user"] == user['userId']) {
+            dispatch(getAllFileSlice({ method: "get", url: `/api/v1/file/getAllFile/${user["userId"]}` }));
 
-
+            setTimeout(() => {
 
 
-    })
 
-      socket.on("LoginUser",(data)=>{
+              const user = JSON.parse(localStorage.getItem("user"));
+              const user_Id = user["userId"];
+
+
+
+              if (user_Id) {
+                dispatch(getCreditSlice({
+                  url: `/api/v1/credit/get/${user_Id}`,
+                  method: "get",
+                }))
+              }
+
+
+
+
+
+
+
+
+
+
+
+
+
+              }, [2000])
+          }
+        }
+
+
+
+
+      })
+
+      socket.on("LoginUser", (data) => {
         console.log("I am Login User");
         console.log(data);
       })
@@ -102,15 +132,15 @@ function App() {
 
 
   return (
-    <socketContextApi.Provider value={{socket:socket}}>
+    <socketContextApi.Provider value={{ socket: socket }}>
 
       <div className="app h-[98vh] m-2 flex flex-col justify-between no-scroll-bar ">
         <Header />
         <Outlet />
-        <Footer/>
+        <Footer />
 
       </div>
-      </socketContextApi.Provider>
+    </socketContextApi.Provider>
 
 
   )
