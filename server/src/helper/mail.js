@@ -106,8 +106,8 @@ const createTransport = () => {
       email = email.replace('{{body}}', content.body);
   
       const callback_url = (content.name === "password_reset")
-        ? `http://localhost:5173/resetpassword/verify/${content.id}`
-        : `http://localhost:5173/emailVerify/${content.id}`;
+        ? `https://webapp.onlylwc.com/resetpassword/verify/${content.id}`
+        : `https://webapp.onlylwc.com/emailVerify/${content.id}`;
       email = email.replace('{{button.url}}', callback_url);
       email = email.replace('{{button.label}}', content.button_label);
   
