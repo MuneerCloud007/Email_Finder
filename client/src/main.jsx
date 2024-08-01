@@ -20,8 +20,11 @@ import Store from "./Store.js";
 import { Provider } from 'react-redux';
 import { ThemeProvider } from "@material-tailwind/react";
 import FileById from './components/dashboard/File/FileById.jsx';
-import ForgotPassword from './components/signin/ForgotPassword.jsx';
-
+import RequestEmailVerification from "./pages/RequestEmailVerification.jsx";
+import EmailVerify from "./pages/EmailVerify.jsx"
+import ResetPassword from "./components/signin/ResetPassword.jsx"
+import VerifyResetPassword from "./components/signin/VerifyResetPassword.jsx";
+import EmailInbox from "./pages/Email_Inbox.jsx"
 const router = createBrowserRouter([
   {
     path: "/",
@@ -37,8 +40,14 @@ const router = createBrowserRouter([
         element: <SignUp />
       },
       {
-        path:"/forgotPassword",
-        element:<ForgotPassword/>
+        path:"/resetPassword",
+        element:(
+          <ResetPassword/>
+        )
+      },
+      {
+        path:"/resetpassword/verify/:id",
+        element:<VerifyResetPassword/>
 
       },
       {
@@ -58,6 +67,24 @@ const router = createBrowserRouter([
           </ProtectedRoutes>
           )
 
+      },
+      {
+        path:"/emailVerify/:id",
+        element:(
+          <EmailVerify/>
+        )
+      },
+      {
+        path:"/request/emailVerify",
+        element:(
+          <RequestEmailVerification/>
+        )
+      },
+      {
+        path:"/emailInbox",
+        element:(
+          <EmailInbox/>
+        )
       }
     ]
   }

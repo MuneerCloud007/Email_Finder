@@ -7,6 +7,7 @@ import { Link } from 'react-router-dom';
 import * as Yup from "yup";
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import Button from "../../InBuild_Component/Button"
 
 export default function SignIn() {
   const [data, setData] = useState({
@@ -147,7 +148,7 @@ export default function SignIn() {
                   </label>
                   <Link 
                   onClick={()=>{
-                    location.href="/forgotPassword"
+                    location.href="/resetpassword"
                   }}
                   
                   title="" className="text-sm font-semibold text-black hover:underline">
@@ -172,60 +173,62 @@ export default function SignIn() {
                 </div>
               </div>
               <div>
-                <button
-                  type="button"
-                  className="inline-flex w-full items-center justify-center rounded-md bg-black px-3.5 py-2.5 font-semibold leading-7 text-white hover:bg-black/80"
-                  onClick={async () => {
+           
+                <Button
+                 onClick={async () => {
 
-                    const vl = {
-                      email: data["email"],
-                      password: data["password"],
-                    }
+                  const vl = {
+                    email: data["email"],
+                    password: data["password"],
+                  }
 
-                    console.log("Error login data");
-                    console.log(vl);
+                  console.log("Error login data");
+                  console.log(vl);
 
-                    try {
-                      await validationSchema.validate(data, { abortEarly: false });
+                  try {
+                    await validationSchema.validate(data, { abortEarly: false });
+                    
+
+                  console.log("I am inside in login bar");
+                  dispatch(loginAsync({
+                    url: "/api/v1/user/login",
+                    method: "post",
+                    data:{...vl}
+
+
+
+                  }));
+
+                  }
+                  catch (error) {
+
+                    const newErrors = {};
+
+                    console.log(error.inner);
+
+                    error.inner.forEach((err) => {
                       
+                      newErrors[err.path] = err.message;
+                    });
+                    console.log(newErrors);
 
-                    console.log("I am inside in login bar");
-                    dispatch(loginAsync({
-                      url: "/api/v1/user/login",
-                      method: "post",
-                      data:{...vl}
+                    setErrorRegister(newErrors);
 
-
-
-                    }));
-
-                    }
-                    catch (error) {
-
-                      const newErrors = {};
-
-                      console.log(error.inner);
-
-                      error.inner.forEach((err) => {
-                        
-                        newErrors[err.path] = err.message;
-                      });
-                      console.log(newErrors);
-
-                      setErrorRegister(newErrors);
-
-                    }
+                  }
 
 
-                  
+                
 
 
 
 
-                  }}
-                >
-                  Get started <ArrowRight className="ml-2" size={16} />
-                </button>
+                }}
+                text={"Sign in"}
+                loading={loginData["isLoading"]}
+                
+                
+                
+                />
               </div>
             </div>
           </form>

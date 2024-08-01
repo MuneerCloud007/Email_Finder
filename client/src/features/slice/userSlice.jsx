@@ -110,6 +110,14 @@ const authSlice = createSlice({
     clearError: (state) => {
       state.error = null;
     },
+    addUserData:(state,{payload})=>{
+      state.userData.data = payload.data
+      localStorage.setItem("user",JSON.stringify(payload.data))
+      
+
+    }
+
+
   },
   extraReducers: (builder) => {
     builder
@@ -198,6 +206,6 @@ const authSlice = createSlice({
   },
 });
 
-export const { clearError } = authSlice.actions;
+export const { clearError,addUserData } = authSlice.actions;
 
 export default authSlice.reducer;

@@ -10,11 +10,10 @@ import {Api1} from "../../features/api/Api";
 
 
 
-function ForgotPassword() {
+function ResetPassword() {
     const [data, setData] = useState({
         email: "",
-        oldpassword: "",
-        newpassword: ""
+      
     });
 
 
@@ -32,13 +31,7 @@ function ForgotPassword() {
             .required('Email is required')
         ,
 
-        oldpassword: Yup.string()
-            .required('Old Password is required')
-            .min(1, 'Old Password is required'),
-
-        newpassword: Yup.string()
-            .required('New Password is required')
-            .min(1, 'New Password is required')
+     
     });
 
     return (
@@ -90,56 +83,7 @@ function ForgotPassword() {
                                     {errorRegiser.email && <p className=' text-red-500'>{errorRegiser.email}</p>}
                                 </div>
                             </div>
-                            <div>
-                                <div className="flex items-center justify-between">
-                                    <label htmlFor="" className="text-base font-medium text-gray-900">
-                                        {' '}
-                                        Old Password{' '}
-                                    </label>
-
-                                </div>
-                                <div className="mt-2">
-                                    <input
-                                        className="flex h-10 w-full rounded-md border border-gray-300 bg-transparent px-3 py-2 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-400 focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50"
-                                        type="password"
-                                        placeholder="old password"
-                                        value={data["oldpassword"]}
-                                        name={"oldpassword"}
-                                        onChange={(e) => {
-                                            setData({ ...data, ["oldpassword"]: e.target.value })
-                                            setErrorRegister({ ...errorRegiser, oldpassword: '' })
-
-                                        }}
-                                    ></input>
-                                    {errorRegiser.oldpassword && <p className=' text-red-500'>{errorRegiser.oldpassword}</p>}
-
-                                </div>
-                            </div>
-                            <div>
-                                <div className="flex items-center justify-between">
-                                    <label htmlFor="" className="text-base font-medium text-gray-900">
-                                        {' '}
-                                        New Password{' '}
-                                    </label>
-
-                                </div>
-                                <div className="mt-2">
-                                    <input
-                                        className="flex h-10 w-full rounded-md border border-gray-300 bg-transparent px-3 py-2 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-400 focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50"
-                                        type="password"
-                                        placeholder="new password"
-                                        value={data["newpassword"]}
-                                        name={"newpassword"}
-                                        onChange={(e) => {
-                                            setData({ ...data, ["newpassword"]: e.target.value })
-                                            setErrorRegister({ ...errorRegiser, newpassword: '' })
-
-                                        }}
-                                    ></input>
-                                    {errorRegiser.newpassword && <p className=' text-red-500'>{errorRegiser.newpassword}</p>}
-
-                                </div>
-                            </div>
+                          
                             <div>
                                 <button
                                     type="button"
@@ -162,15 +106,13 @@ function ForgotPassword() {
                                             console.log("I am inside in login bar");
 
                                             console.log(vl);
-                                            Api1("/api/v1/user/forgotpassword","put",{...vl})
+                                            Api1("/api/v1/user/request/forgotpassword","post",{...vl})
                                             .then((data)=>{
-                                                toast.success("Password is reset");
+                                                setData({
+                                                    email:""
+                                                })
+                                                toast.success("Password is reset mail has send to your inbox");
 
-                                                setTimeout(()=>{
-
-                                                    navigate("/");
-
-                                                },[5000])
                                             })
                                            .catch((err)=>{
                                                 console.log(err);
@@ -220,4 +162,4 @@ function ForgotPassword() {
     );
 }
 
-export default ForgotPassword
+export default ResetPassword

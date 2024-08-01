@@ -8,6 +8,9 @@ import { Api1 } from '../../features/api/Api';
 import * as Yup from "yup";
 import { ToastContainer, toast } from 'react-toastify';
   import 'react-toastify/dist/ReactToastify.css';
+  import { FaSpinner } from 'react-icons/fa'; // Import the loader icon
+  import Button from "../../InBuild_Component/Button";
+
 
 
 export default function SignUp() {
@@ -16,6 +19,7 @@ export default function SignUp() {
   const [errorRegiser,setErrorRegister]=useState({
   
   });
+  const [isLoading,setIsLoading]=useState(false);
   let toastId = useRef(null);
 
   const Navigate=useNavigate();
@@ -62,13 +66,15 @@ export default function SignUp() {
     
         //  Proceed with the API call only if there are no errors
       // endpoint: api/v1/user/register
+      setIsLoading(true);
       Api1("/api/v1/user/register", "post", data)
         .then((response) => {
-          console.log("Register successful!", response);
         
   
 
           setTimeout(() => {
+            setIsLoading(false);
+
             setRegisterData({
               firstName:'',
               lastName:'',
@@ -76,13 +82,14 @@ export default function SignUp() {
               password:'',
               confirmPassword:'',
             });
-            Navigate("/");
+            Navigate("/emailInbox");
           }, 2000);
         })
         .catch((error) => {
           console.error("Error registering user:", error);
           if (!toast.isActive(toastId.current)) {
             console.log(toastId);
+            setIsLoading(false);
 
 
             toastId.current = toast.error( error.response.data.message || "Something went wrong");
@@ -95,6 +102,7 @@ export default function SignUp() {
 
     } catch (error) {
       const newErrors = {};
+      setIsLoading(false);
 
       error.inner.forEach((err) => {
         newErrors[err.path] = err.message;
@@ -297,14 +305,13 @@ export default function SignUp() {
                 </div>
               </div>
               <div>
-                <button
-                  type="button"
-                  className="inline-flex w-full items-center justify-center rounded-md bg-black px-3.5 py-2.5 font-semibold leading-7 text-white hover:bg-black/80"
+              
+                <Button
+                text={"Get Started"}
+                onClick={()=>RegisterFun(registerData)}
+                loading={isLoading}
 
-                  onClick={()=>RegisterFun(registerData)}
-                >
-                  Create Account <ArrowRight className="ml-2" size={16} />
-                </button>
+                />
               </div>
             </div>
           </form>
