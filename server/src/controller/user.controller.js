@@ -4,6 +4,7 @@ import jwt from 'jsonwebtoken';
 import ApiError from '../utils/ApiError.js';
 import FolderSchema from "../model/folder.model.js";
 import creditSchema from "../model/credit.model.js";
+import { create, mailHelper } from "../helper/account.js";
 
 const register = async (req, res, next) => {
     console.log(req.body);
@@ -18,7 +19,35 @@ const register = async (req, res, next) => {
         // Check if user already exists
         let existingUser = await User.findOne({ email });
         if (existingUser) {
-            throw ApiError.badRequest('User already exists');
+            if (!existingUser["isVerified"]) {
+
+                //User Email integration process started....
+                existingUser['firstName'] = firstName;
+                existingUser["lastName"] = lastName;
+                const salt = await bcrypt.genSalt(10);
+                const newPassword = await bcrypt.hash(password, salt);
+                existingUser = await User.findByIdAndUpdate(existingUser["_id"], {
+                    firstName: firstName,
+                    lastName: lastName,
+                    password: newPassword,
+
+                }, {
+                    new: true
+                })
+                await mailHelper({
+                    current_user: existingUser,
+                    template: 'email_verification',
+                    req: req
+                });
+
+                return res.status(200).json({ msg: 'Please check your inbox for the email' });
+
+
+            }
+            else {
+                throw ApiError.badRequest("User Already Exists")
+            }
+
         }
 
         // Create and save new credit
@@ -35,18 +64,126 @@ const register = async (req, res, next) => {
             credit: newCredit._id
         });
         user = await user.save();
-        console.log('User Saved:', user);
 
         // Update credit with user reference
         newCredit.user = user._id;
         await newCredit.save();
 
-        res.status(201).json({ msg: 'User registered successfully' });
+        //User Email integration process started....
+        await mailHelper({
+            current_user: user,
+            template: 'email_verification',
+            req: req
+        });
+
+        res.status(200).json({ msg: 'Please check your inbox for the email' });
     } catch (err) {
         console.error('Registration Error:', err); // Improved error logging
         next(err);
     }
 };
+
+const emailVerify = async (req, res, next) => {
+    try {
+
+        const { id } = req.params;
+        if (!id) {
+            throw ApiError.unauthorized("Your are not authorized user !!!!");
+        }
+        const user = await User.findById(id);
+        console.log(user);
+
+        if (!user || user["isVerified"]) {
+            throw ApiError.notFound("User not found");
+        }
+        user["isVerified"] = true;
+        const token = user.generateAuthToken();
+        const refreshToken = user.generateRefreshToken();
+        await user.save();
+
+        res.cookie('token', token, { httpOnly: true, secure: false }); // Set 'secure: true' if using HTTPS
+        res.cookie('refreshToken', refreshToken, { httpOnly: true, secure: false });
+        console.log("I am inside the login controller !!");
+        console.log(user);
+
+        res.json({ message: "user login successfully", token, refreshToken, userId: user["_id"] });
+
+
+    }
+    catch (err) {
+        next(err);
+
+    }
+
+}
+
+const forgotpasswordUpdate = async (req, res, next) => {
+    try {
+        const { password } = req.body;
+        const { id } = req.params;
+
+        console.log(password);
+        console.log(id);
+
+        if (!id || !password) {
+            return next(ApiError.unauthorized("You are not authorized user!"));
+        }
+
+        const user = await User.findById(id);
+        if (!user) {
+            return next(ApiError.notFound("User not found"));
+        }
+
+        const salt = await bcrypt.genSalt(10);
+        const newPassword = await bcrypt.hash(password, salt);
+
+        const updatedUser = await User.findByIdAndUpdate(user._id, {
+            password: newPassword,
+        }, {
+            new: true,
+        });
+
+        console.log(updatedUser);
+
+        res.json({
+            success: true,
+            data: { message: "Password updated successfully" },
+        });
+
+    } catch (err) {
+        next(err);
+    }
+};
+
+
+const forgotpassword = async (req, res, next) => {
+    try {
+        const { email } = req.body;
+        console.log(email);
+        const user = await User.findOne({ email });
+        if (!user) {
+            throw ApiError.notFound("User not found");
+        }
+
+        await mailHelper({
+            current_user: user,
+            template: 'password_reset',
+            req: req
+        });
+
+        res.status(200).json({
+            message: "Password is reset pls check your mail !!"
+        })
+
+
+    }
+    catch (err) {
+        next(err);
+    }
+}
+
+
+
 const login = async (req, res, next) => {
     let { email, password } = req.body;
 
@@ -60,7 +197,10 @@ const login = async (req, res, next) => {
             throw ApiError.unauthorized('Invalid credentials');
         }
 
+        console.log("Matched data");
+
         const isMatch = await bcrypt.compare(password, user.password);
+        console.log(isMatch);
         if (!isMatch) {
             throw ApiError.unauthorized('Invalid credentials');
         }
@@ -72,7 +212,6 @@ const login = async (req, res, next) => {
         res.cookie('token', token, { httpOnly: true, secure: false }); // Set 'secure: true' if using HTTPS
         res.cookie('refreshToken', refreshToken, { httpOnly: true, secure: false });
         console.log("I am inside the login controller !!");
-        console.log(user);
 
 
 
@@ -81,6 +220,7 @@ const login = async (req, res, next) => {
 
         res.json({ message: "user login successfully", token, refreshToken, userId: user["_id"] });
     } catch (err) {
+        console.log(err);
         next(err);
     }
 };
@@ -149,48 +289,7 @@ const getUserData = async (req, res, next) => {
 
     }
 }
-const forgotPassword = async (req, res, next) => {
-    try {
-        let { email, newpassword, oldpassword } = req.body;
-        email = email.trim();
-        newpassword = newpassword.trim();
-        oldpassword = oldpassword.trim();
 
-        // Validate inputs
-        if (!email || !oldpassword || !newpassword) {
-            throw ApiError.badRequest("Missed email or new password credentials");
-        }
-
-        // Find the user
-        const user = await User.findOne({ email });
-        if (!user) {
-            throw ApiError.badRequest("User not found");
-        }
-
-        // Verify old password
-        const isValidPassword = await user.comparePassword(oldpassword);
-        if (!isValidPassword) {
-            throw ApiError.badRequest("Invalid old password");
-        }
-
-        // Hash new password
-        const salt = await bcrypt.genSalt(10);
-        const hashedPassword = await bcrypt.hash(newpassword, salt);
-        
-        // Update user with new password
-        await User.findByIdAndUpdate(
-            user._id,
-            { password: hashedPassword },
-            { new: true }  // This option returns the updated document
-        );
-
-        // Send success response
-        res.status(200).json({ message: "Password is updated!!!" });
-    } catch (error) {
-        console.error('Error in forgotPassword controller:', error);
-        next(error); // Pass errors to global error handler
-    }
-};
 
 
 const updatePassword = async (req, res, next) => {
@@ -226,4 +325,4 @@ const updatePassword = async (req, res, next) => {
         next(err);
     }
 };
-export { register, refresh, logout, login, getUserData, updatePassword, forgotPassword };
+export { register, refresh, logout, login, getUserData, updatePassword, forgotpassword, emailVerify, forgotpasswordUpdate };
