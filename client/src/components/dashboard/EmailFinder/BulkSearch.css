@@ -1,0 +1,24 @@
+/* styles.css */
+.custom-select-menu {
+    max-height: 25vh; /* Adjust based on your needs */
+    overflow-y: auto; /* Enable scrolling if needed */
+    margin-top: 0.25rem; /* Space between the select box and dropdown */
+}
+/* Custom Scrollbar Styles */
+.custom-scrollbar {
+    max-height: 30vh; /* Adjust as needed */
+    overflow-y: scroll;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 0px; /* Hide scrollbar for Webkit browsers */
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: transparent; /* Hide scrollbar thumb */
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent; /* Hide scrollbar track */
+  }
+  

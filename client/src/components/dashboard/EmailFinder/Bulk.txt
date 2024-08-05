@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect, useContext, useMemo, useRef } from 'react';
+import React, { useState, useCallback, useEffect, useContext, useMemo } from 'react';
 import * as XLSX from 'xlsx';
 import { useDropzone } from 'react-dropzone';
 import "./BulkSearch.css";
@@ -39,7 +39,6 @@ import {
 } from "@heroicons/react/24/solid";
 import { ChevronRightIcon, ChevronDownIcon } from "@heroicons/react/24/outline";
 import countryList from 'react-select-country-list'
-import { onMouseLeaveReduce, onMouseOverReduce } from "../../../features/slice/fileSlice"
 
 
 
@@ -50,20 +49,6 @@ const WrapperTable = () => {
     const user = JSON.parse(localStorage.getItem("user"));
     const { loading, data, error } = useSelector((state) => state.file.FileData);
     const [rowData, setRowData] = useState([]);
-    const gridRef = useRef();
-
-    const onMouseOverRow = (vl) => {
-        console.log("MOuse over value is here!");
-        console.log(vl["data"])
-        dispatch(onMouseOverReduce(vl["data"]));
-
-
-    }
-    const onMouseLeaveRow = (vl) => {
-        console.log("ONMOUSE LEAVE IS HERE");
-        dispatch(onMouseLeaveReduce());
-    }
-
     const [columnDefs, setColumnDefs] = useState([
         {
             headerName: 'File Name', field: 'file_name',
@@ -92,44 +77,27 @@ const WrapperTable = () => {
         { headerName: 'Found', field: 'totalValid' },
         { headerName: 'Status', field: 'status' },
         { headerName: 'Enrichment', field: 'enrichment' },
-
         {
-            headerName: 'Operational', field: "operational", cellRenderer: (params) => {
-                console.log("/file/${params}");
-                const [operationState, setOperationState] = useState(false);
-                const { mouseOverId } = useSelector((state) => state.file)
-                console.log("PARAMS VALUE IS HERE = ");
-                console.log(mouseOverId);
-                if (mouseOverId && mouseOverId["_id"] == params["data"]["_id"]) {
-                    return (
-                        <button onClick={() => {
-                            if (params.data["status"] == "pending") {
-                                return <>
-                                    <span>Loading</span>
-                                </>
+            headerName: 'Download',
+            cellRenderer: (params) => (
+                <button onClick={() => {
+                    if (params.data["status"] == "pending") {
+                        return <>
+                            <span>Loading</span>
+                        </>
 
-                            }
-                            else {
-                                handleDownload(params.data["_id"])
-                            }
+                    }
+                    else {
+                        handleDownload(params.data["_id"])
+                    }
 
-                        }} className={`${params.data["status"] == "pending" ? 'text-gray-600' : ' text-blue-700'}`}>
+                }} className={`${params.data["status"] == "pending" ? 'text-gray-600' : ' text-blue-700'}`}>
 
 
-                            {(params.data["status"] == "pending") ? "Loading" : "Download"}
-                        </button>
-                    )
-
-                }
-                else {
-                    return (<Link >
-                        {params.value}
-                    </Link>)
-                }
-
-            }
-        },
-
+                    {(params.data["status"] == "pending") ? "Loading" : "Download"}
+                </button>
+            )
+        }
     ]);
 
     const handleDownload = (fileId) => {
@@ -181,9 +149,6 @@ const WrapperTable = () => {
             columnDefs={columnDefs}
             setColumnDefs={setColumnDefs}
             isLoading={loading}
-            gridRef={gridRef}
-            onMouseOverRow={onMouseOverRow}
-            onMouseLeaveRow={onMouseLeaveRow}
         />
     );
 };
@@ -355,23 +320,17 @@ const FileModal = ({
 const SampleModal = ({
     isOpen,
     handleDialogClose,
+    errorModal,
     file,
     selectOpen,
     setFileModalData,
     FileModalData,
-    handleSelectOpen, schemaError,
+    handleSelectOpen,
     columns,
     errors,
     handleOptionChange,
     onResetModal,
     setOpen,
-    firstNameColumn,
-    fullNameColumn,
-    lastNameColumn,
-    companyNameColumn,
-    WebsiteColumn,
-    countryStateColumn,
-
 
     handleSubmit
 }) => {
@@ -380,8 +339,14 @@ const SampleModal = ({
         two: true,
         three: true
     });
+    const [fullName, setFullName] = useState();
+    const [firstName, setFirstName] = useState();
+    const [lastName, setLastName] = useState();
+    const [companyName, setCompanyName] = useState();
+    const [companyWebsite, setCompanyWebsite] = useState();
+    const [countryState, setCountryState] = useState();
 
-
+    const [countryValue, setCountryValue] = useState('');
 
     const formattedCountries = countryList().getData().map(country => ({
         value: country.value, // or country.alpha2Code if using Alpha-2 code
@@ -409,16 +374,19 @@ const SampleModal = ({
         })
     };
 
+    console.log("SAMPLE MODAL DATA !!!!!!");
+    console.log(columns);
+    console.log("NEW DATA IS HERE !!!");
+    console.log(SelectFormData)
 
+    console.log("FILE DATA IS HERE");
+    // setFileModalData,
+    // FileModalData,
+    console.log(FileModalData)
 
-
-    const handleChange = (name, selectedOption) => {
-
-
-        setLastName(selectedOption);
-    };
-
-    const [errorModal, setErrorModal] = useState({});
+    const controlledSelect = (e) => {
+        console.log(e);
+    }
 
 
 
@@ -470,9 +438,9 @@ const SampleModal = ({
                                             <div className='w-[40%]'>
                                                 <Typography variant="h6">Full Name</Typography>
                                                 <Select
-                                                    value={fullNameColumn}
+                                                    value={fullName}
                                                     name='fullName'
-                                                    onChange={(e) => handleOptionChange('fullName', e)}
+                                                    onChange={setFullName}
                                                     options={SelectFormData}
                                                     styles={{
                                                         menu: (provided) => ({
@@ -496,7 +464,7 @@ const SampleModal = ({
                                                 />
                                                 {errorModal.fullName && (
                                                     <Typography color="red" variant="small">
-                                                        {errorModal.fullName}
+                                                        Please select a FullName.
                                                     </Typography>
                                                 )}
                                             </div>
@@ -504,8 +472,8 @@ const SampleModal = ({
                                                 <div className="firstName">
                                                     <Typography variant="h6">First Name</Typography>
                                                     <Select
-                                                        value={firstNameColumn}
-                                                        onChange={(e) => handleOptionChange('firstName', e)}
+                                                        value={firstName}
+                                                        onChange={setFirstName}
                                                         options={SelectFormData}
                                                         styles={{
                                                             menu: (provided) => ({
@@ -529,17 +497,16 @@ const SampleModal = ({
                                                     />
                                                     {errorModal.firstName && (
                                                         <Typography color="red" variant="small">
-                                                            {errorModal.firstName}
+                                                            Please select a firstName.
                                                         </Typography>
                                                     )}
                                                 </div>
                                                 <div className="lastName">
                                                     <Typography variant="h6">Last Name</Typography>
                                                     <Select
-                                                        value={lastNameColumn}
-                                                        onChange={(e) => handleOptionChange('lastName', e)}
+                                                        value={lastName}
+                                                        onChange={setLastName}
                                                         options={SelectFormData}
-                                                        name={"lastName"}
                                                         styles={{
                                                             menu: (provided) => ({
                                                                 ...provided,
@@ -560,10 +527,9 @@ const SampleModal = ({
                                                         menuPlacement="top"
                                                         classNamePrefix="custom-scrollbar"
                                                     />
-
                                                     {errorModal.lastName && (
                                                         <Typography color="red" variant="small">
-                                                            {errorModal.lastName}
+                                                            Please select a last name .
                                                         </Typography>
                                                     )}
                                                 </div>
@@ -591,12 +557,11 @@ const SampleModal = ({
                                     <Collapse isOpened={collapseOpen["two"]} className="p-3">
                                         <List className="pl-4">
                                             <div className='w-[90%] grid grid-cols-2 gap-3 justify-center items-center'>
-                                                <div className="countryWebsite">
+                                                <div className="firstName">
                                                     <Typography variant="h6">Companies websites (+20% more emails)</Typography>
                                                     <Select
-                                                        value={WebsiteColumn}
-                                                        name='companyWebsite'
-                                                        onChange={(e) => handleOptionChange('companyWebsite', e)}
+                                                        value={companyWebsite}
+                                                        onChange={setCompanyWebsite}
                                                         options={SelectFormData}
                                                         styles={{
                                                             menu: (provided) => ({
@@ -620,16 +585,15 @@ const SampleModal = ({
                                                     />
                                                     {errorModal.companyWebsite && (
                                                         <Typography color="red" variant="small">
-                                                            {errorModal.companyWebsite}
+                                                            Please select a company website .
                                                         </Typography>
                                                     )}
                                                 </div>
                                                 <div className="companyName">
                                                     <Typography variant="h6">Companies names</Typography>
                                                     <Select
-                                                        value={companyNameColumn}
-                                                        name='companyName'
-                                                        onChange={(e) => handleOptionChange('companyName', e)}
+                                                        value={companyName}
+                                                        onChange={setCompanyName}
                                                         options={SelectFormData}
                                                         styles={{
                                                             menu: (provided) => ({
@@ -653,7 +617,7 @@ const SampleModal = ({
                                                     />
                                                     {errorModal.companyName && (
                                                         <Typography color="red" variant="small">
-                                                            {errorModal.companyName}
+                                                            Please select a company name .
                                                         </Typography>
                                                     )}
                                                 </div>
@@ -683,11 +647,9 @@ const SampleModal = ({
                                             <div className="flex flex-col  country">
                                                 <Typography variant="h6">Country names</Typography>
                                                 <Select
-                                                    value={countryStateColumn}
-                                                    name="country"
-                                                    onChange={(e) => handleOptionChange('country', e)}
+                                                    value={countryState}
+                                                    onChange={setCountryState}
                                                     options={formattedCountries}
-                                                    defaultValue={{label:"India",value:"In"}}
                                                     styles={{
                                                         menu: (provided) => ({
                                                             ...provided,
@@ -710,7 +672,7 @@ const SampleModal = ({
                                                 />
                                                 {errorModal.country && (
                                                     <Typography color="red" variant="small">
-                                                        {errorModal.country}
+                                                        Please select a countryname.
                                                     </Typography>
                                                 )}
                                             </div>
@@ -724,39 +686,34 @@ const SampleModal = ({
 
 
                 <DialogFooter>
-                    <Button variant="text" color="red" onClick={() => {
-                        setOpen(false)}} className="mr-1">
+                    <Button variant="text" color="red" onClick={() => setOpen(false)} className="mr-1">
                         Cancel
                     </Button>
                     <Button variant="text" color="gray" onClick={() => {
-                        setErrorModal({})
-
+                        setFirstName(null);
+                        setLastName(null);
+                        setFullName(null);
+                        setCountryState(null);
+                        setCompanyName(null);
+                        setCompanyWebsite(null);
                         onResetModal();
                     }}>
                         Reset
                     </Button>
-                    <Button variant="text" color="blue" onClick={async () => {
-                        try {
-                            const formData = {
-                                fullName: fullNameColumn ? fullNameColumn["value"] : null,
-                                firstName: firstNameColumn ? firstNameColumn["value"] : null,
-                                lastName: lastNameColumn ? lastNameColumn["value"] : null,
-                                companyName: companyNameColumn ? companyNameColumn["value"] : null,
-                                companyWebsite: WebsiteColumn ? WebsiteColumn["value"] : null,
-                                country: countryStateColumn ? countryStateColumn["value"] : null
-                            }
-                            await schemaError.validate(formData, { abortEarly: false });
-                            setErrorModal({});
-                            handleSubmit()
+                    <Button variant="text" color="blue" onClick={async() => {
+                        const data = {
+                            firstName: firstName ? firstName["value"] : null,
+                            lastName: lastName ? lastName["value"] : null,
+                            fullName: fullName ? fullName["value"] : null,
+                            companyWebsite: companyWebsite ? companyWebsite["value"] : null,
+                            companyName: companyName ? companyName["value"] : null,
+                            country: countryState ? countryState["value"] : null
                         }
-                        catch (err) {
-                            const newErrors = {};
-                            console.log(err);
-                            err.inner.forEach((err) => {
-                                newErrors[err.path] = err.message;
-                            });
-                            setErrorModal(newErrors);
-                        }
+                        console.log("FInde email");
+                        console.log(data);
+                        await handleSubmit(data);
+
+
                     }}>
                         Find Email
                     </Button>
@@ -780,23 +737,9 @@ const FileUploadComponent = () => {
     const [resultOpen, setResultOpen] = useState(false);
     const [columns, setColumns] = useState([]);
     const [file, setFile] = useState(null);
-
-
-    //Select data is here 
-    const [fullNameColumn, setFullNameColumn] = useState('');
     const [firstNameColumn, setFirstNameColumn] = useState('');
     const [lastNameColumn, setLastNameColumn] = useState('');
     const [companyNameColumn, setCompanyNameColumn] = useState('');
-    const [WebsiteColumn, setWebsiteColumn] = useState('');
-    const [countryStateColumn, setCountryStateColumn] = useState('');
-
-
-
-
-
-
-
-
     const [selectOpen, setSelectOpen] = useState({});
     const [isLoading, setIsLoading] = useState(false);
     const [processedCount, setProcessedCount] = useState(0);
@@ -815,49 +758,48 @@ const FileUploadComponent = () => {
     const initalError = {}
     const [error, setErrors] = useState(initalError);
 
+
     const schemaError = Yup.object().shape({
         country: Yup.string().required('Country is required'),
-        fullName: Yup.string().nullable(),
-        firstName: Yup.string().nullable(),
-        lastName: Yup.string().nullable(),
+        fullName: Yup.string(),
+        firstName: Yup.string(),
+        lastName: Yup.string(),
         companyWebsite: Yup.string().nullable(),
         companyName: Yup.string().nullable(),
-    }).test('name-fields', null, function (value) {
+      }).test('name-fields', null, function (value) {
         const { fullName, firstName, lastName } = value;
         if (!fullName && (!firstName || !lastName)) {
-            if (firstName || lastName) {
-                if (!firstName) {
-                    this.createError({
-                        path: 'firstName',
-                        message: 'First Name is required if Full Name is not provided',
-                    });
-                }
-                if (!lastName) {
-                    return this.createError({
-                        path: 'lastName',
-                        message: 'Last Name is required if Full Name is not provided',
-                    });
-                }
-            }
-            if (!fullName) {
-                return this.createError({
-                    path: 'fullName',
-                    message: 'Full Name is required if First Name and Last Name are not provided',
-                });
-            }
+          if (!fullName) {
+            return this.createError({
+              path: 'fullName',
+              message: 'Full Name is required if First Name and Last Name are not provided',
+            });
+          }
+          if (!firstName) {
+            return this.createError({
+              path: 'firstName',
+              message: 'First Name is required if Full Name is not provided',
+            });
+          }
+          if (!lastName) {
+            return this.createError({
+              path: 'lastName',
+              message: 'Last Name is required if Full Name is not provided',
+            });
+          }
         }
         return true;
-    }).test('company-website-or-name', null, function (value) {
+      }).test('company-website-or-name', 'Either Company Website or Company Name is required', function (value) {
         const { companyWebsite, companyName } = value;
         if (!companyWebsite && !companyName) {
-            return this.createError({
-                path: 'companyWebsite',
-                message: 'Either Company Website or Company Name is required',
-            });
+          return this.createError({
+            path: 'companyWebsite',
+            message: 'Either Company Website or Company Name is required',
+          });
         }
         return true;
-    });
-
+      });
+      
 
 
     const handleInsufficientCredit = () => setInsufficientCredit(!InsufficientCredit);
@@ -906,9 +848,6 @@ const FileUploadComponent = () => {
         setFirstNameColumn('');
         setLastNameColumn('');
         setCompanyNameColumn('');
-        setWebsiteColumn('');
-        setFullNameColumn('');
-        setCountryStateColumn('');
 
 
     }, [])
@@ -929,19 +868,10 @@ const FileUploadComponent = () => {
 
     useEffect(() => {
         if (columns.length > 0) {
-            const findColumn = (prefixes) => {
-                const foundCol = columns.find(col =>
-                    prefixes.some(prefix => col.toLowerCase().startsWith(prefix.toLowerCase()))
-                );
-                return foundCol ? { label: foundCol, value: foundCol } : null;
-            };
-            setFullNameColumn(findColumn(['FullName', 'fullname', 'Fullname', 'fullName', 'FULLNAME', 'Full Name']) || '')
+            const findColumn = (prefixes) => columns.find(col => prefixes.some(prefix => col.toLowerCase().startsWith(prefix.toLowerCase())));
             setFirstNameColumn(findColumn(['firstName', 'FirstName', 'firstname', 'Firstname', 'FIRSTNAME']) || '');
             setLastNameColumn(findColumn(['lastName', 'LastName', 'lastname', 'Lastname', 'LASTNAME']) || '');
-            setCompanyNameColumn(findColumn(['company', 'Company', 'domain', 'Domain']) || '');
-            setWebsiteColumn(findColumn(['website', 'Website', 'WEBSITE']) || '');
-            setCountryStateColumn(findColumn(['country', 'Country', 'COUNTRY', 'CountRY']));
-
+            setCompanyNameColumn(findColumn(['company', 'Company', 'domain', 'Domain', 'website', 'Website', 'WEBSITE']) || '');
         }
     }, [columns]);
 
@@ -961,66 +891,69 @@ const FileUploadComponent = () => {
     };
 
 
-    const handleSubmit = async () => {
-        const newErrors = {};
+
+    const handleSubmit = async (data) => {
+        const newErrors = {}
+
+
 
         try {
-            console.log("Modal is started");
+            // await schemaError.validate(data, { abortEarly: false });
+            console.log("ERROR MODAL BRUH")
+            // console.log(errorModal)
 
-            // Create a new FileReader instance
+            // setErrorModal({});
+
             const reader = new FileReader();
-
-            // Define the onload handler for the FileReader
             reader.onload = async (e) => {
-                try {
-                    const data = new Uint8Array(e.target.result);
-                    const workbook = XLSX.read(data, { type: 'array' });
-                    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-                    const jsonData = XLSX.utils.sheet_to_json(firstSheet);
-                    console.log("LENGTH FULL DATA = " + jsonData.length);
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, { type: 'array' });
+                const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                const jsonData = XLSX.utils.sheet_to_json(firstSheet);
+                console.log("LENGTH FULL DATA = " + jsonData.length);
 
-                    // Remove duplicates
-                    const cleanedData = removeDuplicates(jsonData);
-                    console.log("Cleaned data is here !!!!");
-                    console.log(cleanedData);
-                    setCleanedData(cleanedData);
-                    setTotalCount(jsonData.length);
+                // Remove duplicates
+                const cleanedData = removeDuplicates(jsonData);
+                console.log("Cleaned data is here !!!!");
+                console.log(cleanedData);
+                setCleanedData(cleanedData);
+                setTotalCount(jsonData.length);
 
-                    console.log("REMOVED THE DUPLICATE DATA " + cleanedData.length);
-                    console.log(Credit["data"]["points"]);
+                console.log("REMOVED THE DUPLICATE DATA " + cleanedData.length);
+                console.log(Credit["data"]["points"]);
 
-                    // Check credit
-                    if (Credit["data"]["points"] > cleanedData.length) {
-                        setOpen(false);
-                        setResultOpen(true);
-                    } else {
-                        handleInsufficientCredit();
-                    }
+                //We check it by credit system !!!!
 
-                } catch (innerError) {
-                    console.error('Error processing file data:', innerError);
-                    // Handle file data processing errors
-                    setErrorModal({ global: 'Error processing file data' });
+                if (Credit["data"]["points"] > cleanedData.length) {
+
+                    setOpen(false);
+                    setResultOpen(true);
                 }
-            };
+                else {
+                    handleInsufficientCredit();
+                }
 
-            // Read the file
-            reader.readAsArrayBuffer(file);
 
-        } catch (error) {
-            console.error('Error:', error);
-            // Handle the general errors
-            if (error.inner) {
-                error.inner.forEach((err) => {
-                    newErrors[err.path] = err.message;
-                });
-            } else {
-                newErrors.global = error.message;
+
+
+
+
+
+                reader.readAsArrayBuffer(file);
             }
+        }
+        catch (error) {
+            error.inner.forEach((err) => {
+                newErrors[err.path] = err.message;
+            });
+
             setErrorModal(newErrors);
         }
-    };
 
+
+
+
+    };
 
     const handleSelectOpen = (name, open) => {
         setSelectOpen((prev) => ({ ...prev, [name]: open }));
@@ -1038,15 +971,12 @@ const FileUploadComponent = () => {
                 setCompanyNameColumn(value);
                 break;
             case 'companyWebsite':
-                setWebsiteColumn(value);
-                break;
+                setCompanyWebsiteColumn(value);
             case 'fullName':
-                setFullNameColumn(value)
-                break;
+                setFullName(value)
             case 'country':
-                setCountryStateColumn(value)
-                break;
-
+                setCountry(value)
+                        
             default:
                 break;
         }
@@ -1134,16 +1064,6 @@ const FileUploadComponent = () => {
                 file={file}
                 FileModalData={FileModalData}
                 setFileModalData={setFileModalData}
-                fullNameColumn={fullNameColumn}
-                setFullNameColumn={setFullNameColumn}
-                firstNameColumn={firstNameColumn}
-                setFirstNameColumn={setFirstNameColumn}
-                lastNameColumn={lastNameColumn}
-                companyNameColumn={companyNameColumn}
-                WebsiteColumn={WebsiteColumn}
-                countryStateColumn={countryStateColumn}
-                schemaError={schemaError}
-
 
                 selectOpen={selectOpen}
                 handleSelectOpen={handleSelectOpen}
@@ -1152,8 +1072,11 @@ const FileUploadComponent = () => {
                 handleOptionChange={handleOptionChange}
                 onResetModal={onResetModal}
                 setOpen={setOpen}
-
+                firstNameColumn={firstNameColumn}
+                lastNameColumn={lastNameColumn}
+                companyNameColumn={companyNameColumn}
                 handleSubmit={handleSubmit}
+                schemaError={schemaError}
 
             />
 
@@ -1180,14 +1103,7 @@ const FileUploadComponent = () => {
                             console.log(socket["id"]);
                             console.log("Cleaned Data API 1");
                             console.log(cleanedData);
-                            const mappingData = {
-                                fullNameColumn: fullNameColumn ? fullNameColumn["value"] : "",
-                                firstNameColumn: firstNameColumn ? firstNameColumn["value"] : "",
-                                lastNameColumn: lastNameColumn ? lastNameColumn["value"] : "",
-                                companyNameColumn: WebsiteColumn ? WebsiteColumn["value"] : "",
-                                WebsiteColumn: companyNameColumn ? companyNameColumn["value"] : "",
-                                country: countryStateColumn["value"]
-                            }
+                            const mappingData = { firstNameColumn, lastNameColumn, companyNameColumn };
                             console.log("Maping data");
                             console.log(mappingData);
                             Api1('/api/v1/file/uploadTesting', 'post',

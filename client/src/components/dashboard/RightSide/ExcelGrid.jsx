@@ -22,7 +22,7 @@ ModuleRegistry.registerModules([
     ModuleRegistry
 ]);
 
-const GridExample = ({ user, onGridReady, rowData, setRowData, handleOpen, dummyColumn, columnDefs, setColumnDefs, setNewDataFormat, fileId }) => {
+const GridExample = ({ user, onGridReady, rowData, setRowData, handleOpen, dummyColumn, columnDefs, setColumnDefs, setNewDataFormat, fileId,operational }) => {
     const gridRef = useRef();
     const [addColTable, setColTable] = useState(false);
     const [addRowTable, setRowTable] = useState(false);
@@ -122,88 +122,6 @@ const GridExample = ({ user, onGridReady, rowData, setRowData, handleOpen, dummy
 
 
 
-    const onButtonClick = () => {
-        const selectedNodes = gridRef.current.api.getSelectedNodes();
-        selectedNodes.forEach((vl) => {
-
-            console.log("SECLECTED NODES!!!");
-            console.log(vl.data)
-        });
-        console.log("DELETE ROW ACTION");
-        console.log(selectedNodes);
-        const selectedIds = selectedNodes.map(node => node.data["_id"]);
-        console.log("Selected Id for delete rows");
-        console.log(selectedIds);
-        const folder = { folder: "fdfsdfdsfdsfds" };
-
-        ///delete/table
-
-        Api1(`/api/v1/file/delete/rowData`,
-            "delete",
-            { data: selectedIds, fileId, user: user["userId"] }
-        ).then((data) => {
-            console.log("DELETED ROW");
-            console.log(data);
-            setRowData(rowData.filter(row => !selectedIds.includes(row["_id"])));
-        }).catch((err) => console.log(err))
-    };
-
-    const onCellValueChanged = useCallback((params) => {
-        // const updatedData = rowData.map(row => (row.id === event.data.id ? event.data : row));
-        // // setRowData(updatedData);
-        // console.log(updatedData);
-        // console.log(rowData);
-        // console.log("Event@!")
-        // console.log(event.data)
-
-        // // // Send updated cell data to server
-        // // fetch(`https://your-server.com/api/data/${event.data.id}`, {
-        // //   method: 'PUT',
-        // //   headers: {
-        // //     'Content-Type': 'application/json'
-        // //   },
-        // //   body: JSON.stringify(event.data)
-        // // });
-        console.log(params.data);
-
-        //Id , colName , value
-
-        const changedColumn = params.colDef.field; // Get the column field name
-        const oldValue = params.oldValue;
-        const newValue = params.newValue;
-
-
-        const data = {
-            colId: params.data["_id"],
-            colName: changedColumn,
-            oldValue: oldValue,
-            colValue: newValue
-        }
-        console.log(data);
-        if (data.colId) {
-            console.log("DATA COLID IS HERE !!!!");
-            const user = JSON.parse(localStorage.getItem("user"));
-            console.log(params.data.user);
-
-
-            Api1(
-                `/api/v1/file/update/cell/${user["userId"]}`,
-                "put",
-                { ...data }
-
-            ).then((data) => {
-                console.log(data)
-
-            }).catch((err) => {
-                console.log(err)
-
-            })
-        }
-
-
-
-        console.log(`Column ${changedColumn} changed from ${oldValue} to ${newValue}`);
-    }, []);
 
 
 
@@ -296,7 +214,7 @@ const GridExample = ({ user, onGridReady, rowData, setRowData, handleOpen, dummy
                                         LastName: value["lastName"],
                                         Domain: value["domain"],
                                         Email: value["email"],
-                                        "Email Status": value["certainty"],
+                                        "Email Status": operational == "EmailFinder"?"N/A":value["certainty"],
                                         MxProvider: value["mxProvider"],
                                         MxRecord: value["mxRecord"]
                                     });
@@ -348,6 +266,7 @@ const GridExample = ({ user, onGridReady, rowData, setRowData, handleOpen, dummy
                         suppressMultiRangeSelection={true}
                         onGridReady={onGridReady}
                         animateRows={true}
+
                     // Remove or set rowSelection to 'single' to remove checkboxes
                     />
                 </div>

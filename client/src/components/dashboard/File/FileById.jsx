@@ -55,7 +55,6 @@ function FileById() {
   useEffect(() => {
     if (id) {
       setIsLoading(true);
-      // /api/v1/file/file/getById
       Api1("/api/v1/file/file/getById", "post", {
         fileId: id
       }).then(({ data }) => {

@@ -33,6 +33,8 @@ const fileSlice = createSlice({
         message: null
       }
     },
+
+    mouseOverId:null,
     
     Credit:{
       data:{
@@ -55,7 +57,14 @@ const fileSlice = createSlice({
     updateCredits:(state,{payload})=>{
       state.Credit.data.plan=payload.plan;
       state.Credit.data.points=payload.points;
+    },
+    onMouseOverReduce:(state,{payload})=>{
+      state.mouseOverId=payload
+    },
+    onMouseLeaveReduce:(state)=>{
+      state.mouseOverId=null
     }
+    
 
   },
   extraReducers: (builder) => {
@@ -89,5 +98,5 @@ const fileSlice = createSlice({
 
   },
 });
-export const { updateCredits } = fileSlice.actions;
+export const { updateCredits,onMouseLeaveReduce,onMouseOverReduce } = fileSlice.actions;
 export default fileSlice.reducer;

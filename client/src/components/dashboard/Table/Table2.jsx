@@ -22,8 +22,7 @@ ModuleRegistry.registerModules([
     ModuleRegistry
 ]);
 
-const GridExample = ({ user, onGridReady, rowData, dummyColumn, columnDefs,isLoading  }) => {
-    const gridRef = useRef();
+const GridExample = ({ user, onGridReady, rowData, dummyColumn, columnDefs,isLoading ,onMouseLeaveRow ,onMouseOverRow ,gridRef }) => {
     const [addColTable, setColTable] = useState(false);
     const [addRowTable, setRowTable] = useState(false);
     const [inputData, setInputData] = useState({ col: "" });
@@ -92,6 +91,15 @@ const GridExample = ({ user, onGridReady, rowData, dummyColumn, columnDefs,isLoa
                         suppressMultiRangeSelection={true}
                         onGridReady={onGridReady}
                         animateRows={true}
+                        onCellMouseOver={(vl)=>{
+                            onMouseOverRow(vl)
+                        }}
+                        
+                        
+                        onCellMouseOut={(vl)=>{
+                            onMouseLeaveRow(vl)
+                        }}
+                        gridRef={gridRef}
                     />
                 </div>
             </div>

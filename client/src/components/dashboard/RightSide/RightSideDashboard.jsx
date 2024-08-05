@@ -22,6 +22,8 @@ function ReactJsClientSideTable({fileId}) {
   const [user, setUser] = useState();
   const [folder, setFolder] = useState();
   const [rowData, setRowData] = useState();
+  const [operationalState,setOperationalState]=useState({});
+
 
   const initailColumnDef = [
 
@@ -42,9 +44,21 @@ function ReactJsClientSideTable({fileId}) {
    
 
     { field: "email", headerName: 'Email', },
-    {field:"certainty",
+    {
 
       headerName: 'Email Status',
+      cellRenderer: (params) => {
+            return (
+                <>
+                    {"N/A"}
+                </>
+            )
+
+        
+      
+
+    }
+
     },
     {field:"mxProvider", headerName: 'Mx Provider',},{field:"mxRecord",  headerName: 'Mx Record',}
 
@@ -52,7 +66,6 @@ function ReactJsClientSideTable({fileId}) {
 
   ]
   const [columnDefs, setColumnDefs] = useState(initailColumnDef);
-console.log("FIELD_______________________________"+fileId);
 
 
 
@@ -106,6 +119,7 @@ console.log("FIELD_______________________________"+fileId);
         console.log(data);
         
       const newArray= [...data["fileData"]];
+      setOperationalState(data["operational"]);
 
 
         setColumnDefs([...columnDefs]);
@@ -178,6 +192,7 @@ console.log(data);
           fileId={fileId}
           handleOpen={handleOpen}
           setNewDataFormat={setNewDataFormat}
+          operational={operationalState}
           setRowData={setRowData}
           dummyColumn={dummyColumn}
           customColumn={customColumn}

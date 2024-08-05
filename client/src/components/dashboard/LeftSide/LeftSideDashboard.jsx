@@ -26,7 +26,7 @@ import {
 import { ChevronRightIcon, ChevronDownIcon } from "@heroicons/react/24/outline";
 import { useNavigate } from "react-router-dom";
 
-export default function MultiLevelSidebar({ RightSideState,setRightSideState }) {
+export default function MultiLevelSidebar({ RightSideState, setRightSideState }) {
   const [open, setOpen] = React.useState(0);
 
 
@@ -53,7 +53,7 @@ export default function MultiLevelSidebar({ RightSideState,setRightSideState }) 
               />
             }
           >
-                  <ListItem className="p-0" selected={open === 1}>
+            <ListItem className="p-0" selected={open === 1}>
               <AccordionHeader onClick={() => handleOpen(1)} className="border-b-0 p-3">
                 <ListItemPrefix>
                   <MagnifyingGlassIcon className="h-5 w-5" />
@@ -65,17 +65,16 @@ export default function MultiLevelSidebar({ RightSideState,setRightSideState }) 
             </ListItem>
             <AccordionBody className="py-1">
               <List className="p-0">
-                <ListItem className={`${
-            RightSideState === 1 ? '!bg-blue-600 !text-white' : ''
-          }`}
-          onClick={() => setRightSideState(1)}
+                <ListItem className={`${RightSideState === 1 ? '!bg-blue-600 !text-white' : ''
+                  }`}
+                  onClick={() => setRightSideState(1)}
                 >
                   <ListItemPrefix>
                   </ListItemPrefix>
                   Bulk Search
                 </ListItem>
                 <ListItem className={`${RightSideState === 2 ? '!bg-blue-600 !text-white' : ''}`}
-                onClick={()=>setRightSideState(2)}>
+                  onClick={() => setRightSideState(2)}>
                   <ListItemPrefix>
                   </ListItemPrefix>
                   Single Search
