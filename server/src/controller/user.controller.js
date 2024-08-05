@@ -2,7 +2,6 @@ import User from '../model/user.model.js';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import ApiError from '../utils/ApiError.js';
-import FolderSchema from "../model/folder.model.js";
 import creditSchema from "../model/credit.model.js";
 import { create, mailHelper } from "../helper/account.js";
 

@@ -15,6 +15,11 @@ const fileSchema=new mongoose.Schema({
         
     }],
     enrichment:{type:String,default:"Level 1"},
+    operational:{type:String,required:true},
+    fileOperational:{
+        type:mongoose.Schema.Types.ObjectId,
+        ref:"FileOperation"
+    },
 
     totalData:{type:Number,required:true},
     data: [{ type: mongoose.Schema.Types.Mixed, required: true }]

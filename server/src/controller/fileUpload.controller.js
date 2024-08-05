@@ -8,6 +8,7 @@ import fileModel from '../model/file.model.js';
 import ApiError from '../utils/ApiError.js';
 import fileTableModal from '../model/fileTable.modal.js';
 import { fileDownload } from "./FileHelper/File.js";
+import fileOperationModel from '../model/fileOperation.model.js';
 import mongoose from "mongoose";
 
 
@@ -65,17 +66,40 @@ const isCertaintyValid = (certainty) => {
     }};
 
 
-const processDataFromJson = (data, columnMapping) => {
-    return data.map(item => {
-        const firstName = item[columnMapping.firstNameColumn] || '';
-        const lastName = item[columnMapping.lastNameColumn] || '';
-        const websiteOrDomain = item[columnMapping.companyNameColumn] || '';
-        const domain = websiteOrDomain.includes('http') ? extractDomain(websiteOrDomain) : websiteOrDomain;
-        return { firstName, lastName, domain };
-    });
-};
-
-
+    const processDataFromJson = (data, columnMapping) => {
+        return data.map(item => {
+            // Extract values from the item based on column mapping
+            const fullName = item[columnMapping.fullNameColumn] || '';
+            const firstName = item[columnMapping.firstNameColumn] || '';
+            const lastName = item[columnMapping.lastNameColumn] || '';
+            const companyName = item[columnMapping.companyNameColumn] || '';
+            const website = item[columnMapping.WebsiteColumn] || '';
+    
+            // Determine firstName and lastName based on available data
+            let processedFirstName = '';
+            let processedLastName = '';
+    
+            if (firstName && lastName) {
+                processedFirstName = firstName;
+                processedLastName = lastName;
+            } else if (fullName) {
+                const nameParts = fullName.split(' ');
+                processedFirstName = nameParts[0] || '';
+                processedLastName = nameParts.slice(1).join(' ') || '';
+            }
+    
+            // Determine the domain, prioritizing companyName over website
+            const domain = companyName || (website.includes('http') ? extractDomain(website) : website);
+    
+            return {
+                firstName: processedFirstName,
+                lastName: processedLastName,
+                domain: domain
+            };
+        });
+    };
+    
+    
 
 const makeRequestWithRetry = async (url, data, headers, maxRetries = 5, delayMs = 14000, { req, socket }) => {
     let retries = 0;
@@ -167,13 +191,14 @@ const processSubarrays = async (subarrays, { req, socket }) => {
 const FileTesting = async (req, res, next) => {
     const { data, socket, mappingData, id, fileName } = req.body
 
-    console.log(req.body);
+
+    console.log("MAPPING DATA IS HERE PLS CHECK!!!");
+    console.log(mappingData);
 
 
     
     const credit = await creditModel.findOne({ user: id });
 
-    console.log(credit);
 
     console.log("SOCKET DATA IS HERE = "+socket);
 
@@ -187,6 +212,18 @@ const FileTesting = async (req, res, next) => {
         return res.status(400).send('Insufficient points');
     }
 
+    let fileOperationId=new fileOperationModel({
+        fullName:mappingData["fullNameColumn"],
+        firstName:mappingData["firstNameColumn"],
+        lastName:mappingData["lastNameColumn"],
+        companyName:mappingData["companyNameColumn"],
+        website:mappingData["WebsiteColumn"],
+        country:mappingData["country"]
+
+    });
+
+    fileOperationId=await fileOperationId.save();
+
 
 
 
@@ -197,11 +234,12 @@ const FileTesting = async (req, res, next) => {
         totalValid: 0,
         totalData: data.length,
         status: "pending",
-        data: []
-
-
+        data: [],
+        operational:"EmailFinder",
+        fileOperational:fileOperationId["_id"]
     });
 
+    newFileData = await newFileData.save();
 
     req.io.to(socket).emit("File_Pending", {
         message: {
@@ -210,27 +248,13 @@ const FileTesting = async (req, res, next) => {
             totalValid: 0,
             totalData: data.length,
             status: "pending",
-            data: []
-
+            data: [],
+            operational:"EmailFinder",
 
         },
         success: true
 
     })
-
-
-
-
-
-
-
-
-    newFileData = await newFileData.save();
-
-
-
-
-
 
     //Result is checked now operation is started 
     const subarraySize = 5000;
@@ -351,7 +375,8 @@ const getFileById = async (req, res, next) => {
 
         res.status(200).json({
             success: true,
-            data: fileByIdData
+            data: fileByIdData,
+            operational:fileByIdData["operational"]
         })
     }
     catch (err) {
