@@ -20,8 +20,7 @@ const convertCsvToJson = (csvUrl) => {
 };
 
 // URL of the CSV file
-const csvUrl = 'https://bulkapi.millionverifier.com/bulkapi/v2/download?key=I1bhNtONTtv9oVPizmDpvoYTe&file_id=27000559&filter=all';
-
-
+const csvUrl = 'https://bulkapi.millionverifier.com/bulkapi/v2/download?key=I1bhNtONTtv9oVPizmDpvoYTe&file_id=27008124&filter=all';
+const data=convertCsvToJson(csvUrl).then((data)=>console.log(data)).catch((err)=>console.log(err));
 
   export {convertCsvToJson}

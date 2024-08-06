@@ -257,69 +257,72 @@ const fileVerification = async (req, res, next) => {
             mxProvider: verifiedData[index]?.results.emails?.[0]?.mxProvider || 'unknown'
         }));
 
-        const excelSheet = await jsonToExcel(dummyVerifiedData);
-        const apiKey = process.env["Million_verifier_API_KEY"];
-        console.log(apiKey);
+        const filterOutDummyData = dummyVerifiedData.filter(row => row.email !== 'unknown');
+        const filterOutIndex = filterOutDummyData.map(row => dummyVerifiedData.indexOf(row));
 
+        console.log("filterOutIndex is here is pls check");
+        console.log(filterOutIndex);
+
+        const excelSheet = await jsonToExcel(filterOutDummyData);
+        const apiKey = process.env["Million_verifier_API_KEY"];
         const fileId = await uploadFile(excelSheet, apiKey);
 
-        console.log("FIle is id is here = " + fileId["file_id"])
-
-        const fileTotalStatus=await checkStatusFileVerification(fileId["file_id"]);
+        const fileTotalStatus = await checkStatusFileVerification(fileId["file_id"]);
         await delay(3000);
         console.log("File total Status is here....");
         console.log(fileTotalStatus);
 
         const fileGetUrl = `https://bulkapi.millionverifier.com/bulkapi/v2/download?key=${apiKey}&file_id=${fileId["file_id"]}&filter=all`;
-        //
-        
         const verifiedResult = await convertCsvToJson(fileGetUrl);
 
         console.log("verifiedResult is here pls check !!!");
-        console.log(verifiedResult);
-        result = [...verifiedResult];
 
-        
+        filterOutIndex.forEach((vl, index) => {
+            dummyVerifiedData[vl] = verifiedResult[index];
+        });
 
-        const emailVerifyCount={
-            valid:0,
-            valid_catchAll:0,
-            invalid:0,
-            catch_all:0,
-            disposable:0
-        }
+        const emailVerifyCount = {
+            valid: 0,
+            valid_catchAll: 0,
+            invalid: 0,
+            catch_all: 0,
+            disposable: 0
+        };
 
-        
+        const updatedData = dummyVerifiedData.map((row, index) => {
+            switch (row["result"]) {
+                case "catch_all":
+                    emailVerifyCount.catch_all++;
+                    break;
+                case "invalid":
+                    emailVerifyCount.invalid++;
+                    break;
+                case "ok":
+                    emailVerifyCount.valid++;
+                    break;
+                case "disposable":
+                    emailVerifyCount.disposable++;
+                    break;
+                default:
+                    emailVerifyCount.invalid++;
+                    break;
 
-        const updatedData = verifiedResult.map((row, index) => {
-            if(row["result"]=="catch_all"){
-                emailVerifyCount.catch_all++;
+
             }
-            if(row["result"]=="invalid"){
-                emailVerifyCount.invalid++;
-            }
-            if(row["result"]=="ok"){
-                emailVerifyCount.valid++;
-            }
-            if(row["result"]=="disposable"){
-                emailVerifyCount.disposable++;
-            }
 
+            return {
+                ...data[index],
+                email: row["email"] || 'unknown',
+                certainty: isCertaintyValid(row["certainty"]) || 'invalid',
+                mxrecords: row["mxrecords"] || 'unknown',
+                mxProvider: row["mxProvider"] || 'unknown',
+                quality: row["quality"] || "unknown",
+                status: row["result"] || "unknown"
+            };
+        });
 
-            return({
-            ...data[index],
-            email: row["email"] || 'unknown',
-            certainty: isCertaintyValid(row["certainty"]) || 'invalid',
-            mxrecords: row["mxrecords"] || 'unknown',
-            mxProvider: row["mxProvider"] || 'unknown',
-            quality: row["quality"],
-            status: row["result"],
-        })}
-    );
-
-        const promises = verifiedResult.map(async (vl) => {
+        const promises = dummyVerifiedData.map(async (vl) => {
             const { firstName, lastName, domain, email, certainty, mxrecords, mxProvider, quality, result } = vl;
-            console.log("Line no 333 in file upload");
 
             let newFileTable = new fileTableModal({ firstName, lastName, domain, email, certainty, mxRecord: mxrecords, mxProvider, userId: id, fileId: newFileData["_id"], quality, status: result });
             newFileTable = await newFileTable.save();
@@ -332,18 +335,14 @@ const fileVerification = async (req, res, next) => {
 
         newFileData.data = updatedData;
         newFileData.totalValid = foundSize;
-        //Email Find json is added
-        newFileData["EmailFind"]["totalValid"]=foundSize;
-        newFileData["EmailFind"]["totalInvalid"]=totalSize-foundSize;
-       
+        newFileData["EmailFind"]["totalValid"] = foundSize;
+        newFileData["EmailFind"]["totalInvalid"] = totalSize - foundSize;
 
-        //Email Verification json is added 
-        newFileData['EmailVerify']["totalValid"]=emailVerifyCount["valid"] 
-        newFileData['EmailVerify']['valid_catchAll']=emailVerifyCount["valid_catchAll"];
-        newFileData["EmailVerify"]["totalInvalid"]=emailVerifyCount["invalid"];
-        newFileData["EmailVerify"]["catch_all"]=emailVerifyCount["catch_all"];
-        newFileData["EmailVerify"]["disposable"]=emailVerifyCount["disposable"];
-
+        newFileData['EmailVerify']["totalValid"] = emailVerifyCount["valid"];
+        newFileData['EmailVerify']['valid_catchAll'] = emailVerifyCount["valid_catchAll"];
+        newFileData["EmailVerify"]["totalInvalid"] = emailVerifyCount["invalid"];
+        newFileData["EmailVerify"]["catch_all"] = emailVerifyCount["catch_all"];
+        newFileData["EmailVerify"]["disposable"] = emailVerifyCount["disposable"];
 
         newFileData.status = "completed";
         newFileData = await newFileData.save();
@@ -356,14 +355,9 @@ const fileVerification = async (req, res, next) => {
                 totalData: totalSize,
                 data: updatedData,
                 status: "completed"
-    
-    
             },
             success: true
-    
-        })
-
-        
+        });
 
         res.status(200).json({
             success: true,
@@ -380,9 +374,3 @@ const fileVerification = async (req, res, next) => {
 
 
 export { fileVerification };
-
-
-
-
-
-
