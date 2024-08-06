@@ -48,6 +48,17 @@ function ReactJsClientSideTable({fileId}) {
 
       headerName: 'Email Status',
       cellRenderer: (params) => {
+        console.log("EMail status params");
+        console.log(params);
+        if(params["data"]["quality"]) {
+          return (
+            <>
+            {
+              params["data"]["quality"]
+            }
+            </>
+          )
+        }
             return (
                 <>
                     {"N/A"}
@@ -115,7 +126,7 @@ function ReactJsClientSideTable({fileId}) {
         return resp.json()
       })
       .then(({data,success}) => {
-        console.log("DATA")
+        console.log("THis is the file data inside the detail page of table !!!!");
         console.log(data);
         
       const newArray= [...data["fileData"]];

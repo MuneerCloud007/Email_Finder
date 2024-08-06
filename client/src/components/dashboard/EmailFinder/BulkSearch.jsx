@@ -96,10 +96,10 @@ const WrapperTable = () => {
         {
             headerName: 'Operational', field: "operational", cellRenderer: (params) => {
                 console.log("/file/${params}");
-                const [operationState, setOperationState] = useState(false);
                 const { mouseOverId } = useSelector((state) => state.file)
                 console.log("PARAMS VALUE IS HERE = ");
-                console.log(mouseOverId);
+                console.log(params["data"]["operational"]);
+                console.log("After params below")
                 if (mouseOverId && mouseOverId["_id"] == params["data"]["_id"]) {
                     return (
                         <button onClick={() => {
@@ -110,7 +110,7 @@ const WrapperTable = () => {
 
                             }
                             else {
-                                handleDownload(params.data["_id"])
+                                handleDownload(params.data["_id"],params["data"]["operational"])
                             }
 
                         }} className={`${params.data["status"] == "pending" ? 'text-gray-600' : ' text-blue-700'}`}>
@@ -132,15 +132,17 @@ const WrapperTable = () => {
 
     ]);
 
-    const handleDownload = (fileId) => {
+    const handleDownload = (fileId,operational) => {
         // Implement the download functionality here
         console.log("Download file with ID:", fileId);
+        console.log("EMail operational is here pls check = "+operational);
         const user = JSON.parse(localStorage.getItem("user"));
 
         Api3({
             method: "post", url: "/api/v1/file/download/File", data: {
                 "fileId": fileId,
-                "userId": user["userId"]
+                "userId": user["userId"],
+                operational:operational
             }
         }).then((data) => data.data).then(async (response) => {
             console.log("Api3 response !!!");
@@ -224,132 +226,7 @@ const InvalidFileTypeModal = ({ isOpen, handleClose }) => {
     );
 };
 
-const FileModal = ({
-    open,
-    handleDialogClose,
-    file,
-    selectOpen,
-    handleSelectOpen,
-    columns,
-    errors,
-    handleOptionChange,
-    onResetModal,
-    setOpen,
-    firstNameColumn,
-    lastNameColumn,
-    companyNameColumn,
-    handleSubmit
 
-
-}) => {
-
-
-
-
-
-
-
-
-
-    return (
-        <Dialog open={open} handler={() => { }} size={"xl"} onClose={handleDialogClose}>
-            <div className="grid grid-cols-1 divide-y w-full p-3">
-                <DialogHeader>{file ? file.name : 'No file selected'}</DialogHeader>
-                <DialogBody>
-                    <div className="space-y-4">
-                        <div>
-                            <Typography variant="h6">Column First Name</Typography>
-                            <Select
-                                open={selectOpen.firstName}
-                                onOpen={() => handleSelectOpen('firstName', true)}
-                                onClose={() => handleSelectOpen('firstName', false)}
-                                value={firstNameColumn}
-                                onChange={(e) => {
-                                    console.log("FIRST NAME IN SELECT = ");
-                                    console.log(e);
-                                    handleOptionChange('firstName', e)
-                                }}
-                                className="w-full"
-                                error={errors.firstName}
-                            >
-                                {columns.map((col, index) => (
-                                    <Option key={index} value={col}>{col}</Option>
-                                ))}
-                            </Select>
-                            {errors.firstName && (
-                                <Typography color="red" variant="small">
-                                    Please select a first name column.
-                                </Typography>
-                            )}
-                        </div>
-                        <div>
-                            <Typography variant="h6">Column Last Name</Typography>
-                            <Select
-                                open={selectOpen.lastName}
-                                onOpen={() => handleSelectOpen('lastName', true)}
-                                onClose={() => handleSelectOpen('lastName', false)}
-                                value={lastNameColumn}
-                                onChange={(e) => handleOptionChange('lastName', e)}
-                                className="w-full"
-                                error={errors.lastName}
-                            >
-                                {columns.map((col, index) => (
-                                    <Option key={index} value={col}>{col}</Option>
-                                ))}
-                            </Select>
-                            {errors.lastName && (
-                                <Typography color="red" variant="small">
-                                    Please select a last name column.
-                                </Typography>
-                            )}
-                        </div>
-                        <div>
-                            <Typography variant="h6">
-                                Domain or Company Name <span className='text-red-500'>*</span>
-                                <span className='font-normal text-green-600 ml-2'>The company's domain generates the best results, yielding 20% more emails</span>
-                            </Typography>
-                            <Select
-                                open={selectOpen.companyName}
-                                onOpen={() => handleSelectOpen('companyName', true)}
-                                onClose={() => handleSelectOpen('companyName', false)}
-                                value={companyNameColumn}
-                                onChange={(e) => handleOptionChange('companyName', e)}
-                                className="w-full"
-                                error={errors.companyName}
-                            >
-                                {columns.map((col, index) => (
-                                    <Option key={index} value={col}>{col}</Option>
-                                ))}
-                            </Select>
-                            {errors.companyName && (
-                                <Typography color="red" variant="small">
-                                    Please select a company name column.
-                                </Typography>
-                            )}
-                        </div>
-                    </div>
-                </DialogBody>
-
-                <DialogFooter>
-                    <Button variant="text" color="red" onClick={() => setOpen(false)} className="mr-1">
-                        Cancel
-                    </Button>
-                    <Button variant="text" color="gray" onClick={() => {
-                        onResetModal();
-                    }}>
-                        Reset
-                    </Button>
-                    <Button variant="text" color="blue" onClick={handleSubmit}>
-                        Find Email
-                    </Button>
-                    <Button variant="text" color="cyan" >
-                        Find And Verfiy Email
-                    </Button>
-                </DialogFooter>
-            </div>
-        </Dialog>
-    )
-}
 
 
 const SampleModal = ({
@@ -412,11 +289,7 @@ const SampleModal = ({
 
 
 
-    const handleChange = (name, selectedOption) => {
-
-
-        setLastName(selectedOption);
-    };
+ 
 
     const [errorModal, setErrorModal] = useState({});
 
@@ -728,13 +601,7 @@ const SampleModal = ({
                         setOpen(false)}} className="mr-1">
                         Cancel
                     </Button>
-                    <Button variant="text" color="gray" onClick={() => {
-                        setErrorModal({})
-
-                        onResetModal();
-                    }}>
-                        Reset
-                    </Button>
+                  
                     <Button variant="text" color="blue" onClick={async () => {
                         try {
                             const formData = {
@@ -758,11 +625,16 @@ const SampleModal = ({
                             setErrorModal(newErrors);
                         }
                     }}>
-                        Find Email
+                        Submit
                     </Button>
-                    <Button variant="text" color="cyan" onClick={() => alert("ON DEVELOPMENT PROCESS !!")}>
-                        Find And Verfiy Email
+                    <Button variant="text" color="gray" onClick={() => {
+                        setErrorModal({})
+
+                        onResetModal();
+                    }}>
+                        Reset
                     </Button>
+               
                 </DialogFooter>
             </div>
         </Dialog>
@@ -789,13 +661,6 @@ const FileUploadComponent = () => {
     const [companyNameColumn, setCompanyNameColumn] = useState('');
     const [WebsiteColumn, setWebsiteColumn] = useState('');
     const [countryStateColumn, setCountryStateColumn] = useState('');
-
-
-
-
-
-
-
 
     const [selectOpen, setSelectOpen] = useState({});
     const [isLoading, setIsLoading] = useState(false);
@@ -950,6 +815,8 @@ const FileUploadComponent = () => {
         const seenRows = new Set();
 
         data.forEach((row) => {
+            console.log("Remove Duplicate rows is here:::");
+          
             const rowString = JSON.stringify(row);
             if (!seenRows.has(rowString)) {
                 seenRows.add(rowString);
@@ -1209,7 +1076,44 @@ const FileUploadComponent = () => {
                             setResultOpen(false)
                             setIsLoading(true);
 
-                        }}>Start Enrichment</Button>
+                        }}>Email Finder</Button>
+                         <Button variant='text' color='blue' onClick={() => {
+                            // Send cleaned data to the backend
+                            //uploadTesting
+                            console.log("Socket data here____");
+                            console.log(socket["id"]);
+                            console.log("Cleaned Data API 1");
+                            console.log(cleanedData);
+                            const mappingData = {
+                                fullNameColumn: fullNameColumn ? fullNameColumn["value"] : "",
+                                firstNameColumn: firstNameColumn ? firstNameColumn["value"] : "",
+                                lastNameColumn: lastNameColumn ? lastNameColumn["value"] : "",
+                                companyNameColumn: WebsiteColumn ? WebsiteColumn["value"] : "",
+                                WebsiteColumn: companyNameColumn ? companyNameColumn["value"] : "",
+                                country: countryStateColumn["value"]
+                            }
+                            console.log("Maping data");
+                            console.log(mappingData);
+                            Api1('/api/v1/file/verification/upload', 'post',
+                                {
+                                    data: cleanedData, socket: socket["id"],
+                                    mappingData: mappingData,
+                                    id: user["userId"], fileName: file ? file.name : "File-1"
+
+                                })
+                                .then(response => response.data)
+                                .then(data => {
+                                    console.log(data);
+                                    setIsLoading(false);
+                                })
+                                .catch((error) => {
+                                    console.error('Error:', error);
+                                    setIsLoading(false);
+                                });
+                            setResultOpen(false)
+                            setIsLoading(true);
+
+                        }}>Email Verification</Button>
 
                         <Button variant="text" color="red" onClick={() => setResultOpen(false)} className="mr-1">
                             Close

@@ -207,6 +207,7 @@ const GridExample = ({ user, onGridReady, rowData, setRowData, handleOpen, dummy
                         if (gridRef.current && gridRef.current.api) {
                             const rowCount = gridRef.current.api.getDisplayedRowCount();
                             console.log('Number of rows:', rowCount);
+                            console.log("operation value is given here pls chceck =" +operational)
                             if (rowCount > 0) {
                                 const newData = rowData.reduce((newValue, value) => {
                                     newValue.push({
@@ -214,7 +215,7 @@ const GridExample = ({ user, onGridReady, rowData, setRowData, handleOpen, dummy
                                         LastName: value["lastName"],
                                         Domain: value["domain"],
                                         Email: value["email"],
-                                        "Email Status": operational == "EmailFinder"?"N/A":value["certainty"],
+                                        "Email Status": operational == "EmailFinder"?"N/A":value['quality'],
                                         MxProvider: value["mxProvider"],
                                         MxRecord: value["mxRecord"]
                                     });
