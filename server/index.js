@@ -12,7 +12,7 @@ import { createServer } from 'http';
 import { fileURLToPath } from 'url';
 import fileUploadApi from './src/api/fileUpload.api.js';
 import creditApi from './src/api/credit.api.js';
-
+import  fileVerification  from './src/api/fileVerification.api.js';
 
 dotenv.config();
 
@@ -110,6 +110,7 @@ app.use(socketIoMiddleware(io));
 app.use('/api/v1/user', userApi); // 
 app.use('/api/v1/file', fileUploadApi);   ////  ""
 app.use('/api/v1/credit', creditApi);
+app.use('/api/v1/file/verification',fileVerification);
 
 // Route to emit message
 app.get('/emit-message', (req, res) => {

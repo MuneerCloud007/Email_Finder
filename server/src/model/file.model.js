@@ -4,7 +4,31 @@ import mongoose from "mongoose";
 const fileSchema=new mongoose.Schema({
     file_name:{type:String,required:true},
     status:{type:String,required:true},
-    totalValid:{type:Number,required:true},
+    EmailFind:{
+        totalValid:{type:Number,},
+        totalInvalid:{type:Number},
+
+    },
+    EmailVerify:{ 
+        totalValid:{
+            type:Number,
+        },
+        totalInvalid:{
+            type:Number,
+        },
+        valid_catchAll:{
+            type:Number
+        },
+        catch_all:{
+            type:Number
+        },
+        disposable:{
+            type:Number
+        }
+    },
+    totalValid:{
+        type:Number,
+    },
   
     user:{type:mongoose.Schema.Types.ObjectId,
         ref:"User",
@@ -18,7 +42,8 @@ const fileSchema=new mongoose.Schema({
     operational:{type:String,required:true},
     fileOperational:{
         type:mongoose.Schema.Types.ObjectId,
-        ref:"FileOperation"
+        ref:"FileOperation",
+        default:null
     },
 
     totalData:{type:Number,required:true},

@@ -9,7 +9,10 @@ const fileTable=new mongoose.Schema({
     email:{type:String,default:"invalid"},
     certainty:{type:String,default:"invalid"},
     mxRecord:{type:String,default:"invalid"},
-    mxProvider:{type:String,default:"invalid"}
+    mxProvider:{type:String,default:"invalid"},
+   quality:{type:String,},
+   status:{type:String}
+
 
 })
 

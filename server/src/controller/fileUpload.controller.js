@@ -26,36 +26,7 @@ const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
 const extractDomain = (url) => new URL(url).hostname.replace(/^www\./, '');
 
-const processData = (sheet, columnMapping) => {
-    const range = xlsx.utils.decode_range(sheet['!ref']);
-    const data = [];
-    const columnHeaders = {
-        firstName: columnMapping.firstNameColumn,
-        lastName: columnMapping.lastNameColumn,
-        domain: columnMapping.companyNameColumn
-    };
 
-    // Find column indices based on provided column names
-    const colIndices = {};
-    for (let col = range.s.c; col <= range.e.c; col++) {
-        const cell = sheet[xlsx.utils.encode_cell({ r: 0, c: col })];
-        if (cell) {
-            const colHeader = cell.v.trim();
-            if (Object.values(columnHeaders).includes(colHeader)) {
-                colIndices[colHeader] = col;
-            }
-        }
-    }
-
-    for (let row = range.s.r + 1; row <= range.e.r; row++) {
-        const firstName = sheet[xlsx.utils.encode_cell({ r: row, c: colIndices[columnHeaders.firstName] })]?.v || '';
-        const lastName = sheet[xlsx.utils.encode_cell({ r: row, c: colIndices[columnHeaders.lastName] })]?.v || '';
-        const websiteOrDomain = sheet[xlsx.utils.encode_cell({ r: row, c: colIndices[columnHeaders.domain] })]?.v || '';
-        const domain = websiteOrDomain.includes('http') ? extractDomain(websiteOrDomain) : websiteOrDomain;
-        data.push({ firstName, lastName, domain });
-    }
-    return data;
-};
 const isCertaintyValid = (certainty) => {
     if(Object.values(CertainityEnum).includes(certainty)){
         return "valid"
@@ -66,40 +37,40 @@ const isCertaintyValid = (certainty) => {
     }};
 
 
-    const processDataFromJson = (data, columnMapping) => {
-        return data.map(item => {
-            // Extract values from the item based on column mapping
-            const fullName = item[columnMapping.fullNameColumn] || '';
-            const firstName = item[columnMapping.firstNameColumn] || '';
-            const lastName = item[columnMapping.lastNameColumn] || '';
-            const companyName = item[columnMapping.companyNameColumn] || '';
-            const website = item[columnMapping.WebsiteColumn] || '';
-    
-            // Determine firstName and lastName based on available data
-            let processedFirstName = '';
-            let processedLastName = '';
-    
-            if (firstName && lastName) {
-                processedFirstName = firstName;
-                processedLastName = lastName;
-            } else if (fullName) {
-                const nameParts = fullName.split(' ');
-                processedFirstName = nameParts[0] || '';
-                processedLastName = nameParts.slice(1).join(' ') || '';
-            }
-    
-            // Determine the domain, prioritizing companyName over website
-            const domain = companyName || (website.includes('http') ? extractDomain(website) : website);
-    
-            return {
-                firstName: processedFirstName,
-                lastName: processedLastName,
-                domain: domain
-            };
-        });
-    };
-    
-    
+const processDataFromJson = (data, columnMapping) => {
+    return data.map(item => {
+        // Extract values from the item based on column mapping
+        const fullName = item[columnMapping.fullNameColumn] || '';
+        const firstName = item[columnMapping.firstNameColumn] || '';
+        const lastName = item[columnMapping.lastNameColumn] || '';
+        const companyName = item[columnMapping.companyNameColumn] || '';
+        const website = item[columnMapping.WebsiteColumn] || '';
+
+        // Determine firstName and lastName based on available data
+        let processedFirstName = '';
+        let processedLastName = '';
+
+        if (firstName && lastName) {
+            processedFirstName = firstName;
+            processedLastName = lastName;
+        } else if (fullName) {
+            const nameParts = fullName.split(' ');
+            processedFirstName = nameParts[0] || '';
+            processedLastName = nameParts.slice(1).join(' ') || '';
+        }
+
+        // Determine the domain, prioritizing companyName over website
+        const domain = companyName || (website.includes('http') ? extractDomain(website) : website);
+
+        return {
+            firstName: processedFirstName,
+            lastName: processedLastName,
+            domain: domain
+        };
+    });
+};
+
+
 
 const makeRequestWithRetry = async (url, data, headers, maxRetries = 5, delayMs = 14000, { req, socket }) => {
     let retries = 0;
@@ -107,10 +78,15 @@ const makeRequestWithRetry = async (url, data, headers, maxRetries = 5, delayMs 
         try {
             const response = await axios.post(url, data, { headers });
             console.log(response.data);
+            if(response.data.files[0]["total"] == response.data.files[0]["done"]){
+                return response.data;
+
+            }
 
             if (!response.data.files[0]['finished']) {
                 throw new Error('It is not in progress yet!');
             }
+          
             return response.data;
         } catch (error) {
             console.log("Error during request:", error.message);
@@ -126,46 +102,49 @@ const makeRequestWithRetry = async (url, data, headers, maxRetries = 5, delayMs 
 };
 
 const processVerification = async (subarray, { req, socket }) => {
-    const EmailVerifierData = {
-        task: 'email-search',
-        name: 'CloudV',
-        data: subarray.map(({ firstName, lastName, domain }) => [firstName, lastName, domain])
-    };
+    try {
+        const EmailVerifierData = {
+            task: 'email-search',
+            name: 'CloudV',
+            data: subarray.map(({ firstName, lastName, domain }) => [firstName, lastName, domain])
+        };
 
-    const headers = {
-        Authorization: '41b965a9f0a544f1aa43df5bcdaf58168a48bf9dfeb648ac8dc4863d5316498b',
-        'Content-Type': 'application/json'
-    };
+        const headers = {
+            Authorization: process.env["Icypeas_API_KEY"],
+            'Content-Type': 'application/json'
+        };
 
-    const url1 = 'https://app.icypeas.com/api/bulk-search';
-    const response1 = await axios.post(url1, EmailVerifierData, { headers });
-    await delay(3000);
-    const file = response1.data.file;
+        const url1 = 'https://app.icypeas.com/api/bulk-search';
+        const response1 = await axios.post(url1, EmailVerifierData, { headers });
+        await delay(3000);
+        const file = response1.data.file;
 
-    const url2 = 'https://app.icypeas.com/api/bulk-single-searchs/read';
-    const maxRetries = subarray.length > 100 ? 20 : subarray.length > 50 ? 10 : 5;
-    const customDelay = subarray.length > 200 ? 15000 : subarray.length > 50 ? 11000 : 10000;
+        const url2 = 'https://app.icypeas.com/api/bulk-single-searchs/read';
+        const maxRetries = subarray.length > 100 ? 20 : subarray.length > 50 ? 10 : 5;
+        const customDelay = subarray.length > 200 ? 15000 : subarray.length > 50 ? 11000 : 10000;
 
-    const resultOption = {
-        user: 'LUx6tZABOIKatkTjs8LF',
-        mode: 'bulk',
-        file,
-        type: 'email-search',
-        limit: subarray.length
-    };
-    const checkOption = { 
-        user: 'LUx6tZABOIKatkTjs8LF',
-        file,
-        limit: subarray.length
-    };
+        const resultOption = {
+            user: process.env["Icypeas_User_Id"],
+            mode: 'bulk',
+            file,
+            type: 'email-search',
+            limit: subarray.length
+        };
+        const checkOption = {
+            user: process.env["Icypeas_User_Id"],
+            file,
+            limit: subarray.length
+        };
 
-    const response2 = await makeRequestWithRetry('https://app.icypeas.com/api/search-files/read', checkOption, headers, 1000, customDelay, { req, socket });
-    if (!response2.files[0]['finished']) {
-        throw new Error('Error during file processing');
+        const response2 = await makeRequestWithRetry('https://app.icypeas.com/api/search-files/read', checkOption, headers, 1000, customDelay, { req, socket });
+      
+        const response3 = await axios.post(url2, resultOption, { headers });
+        return { data: response3.data.items, found: response2.files[0].found, size: subarray.length };
     }
+    catch (err) {
+        console.log(err);
 
-    const response3 = await axios.post(url2, resultOption, { headers });
-    return { data: response3.data.items, found: response2.files[0].found, size: subarray.length };
+    }
 };
 
 const processSubarrays = async (subarrays, { req, socket }) => {
@@ -174,6 +153,8 @@ const processSubarrays = async (subarrays, { req, socket }) => {
     let foundSize = 0
     const promises = subarrays.map(subarray => processVerification(subarray, { req, socket }));
     const results = await Promise.all(promises);
+    console.log("Process subarrays is here pls check");
+    console.log(results);
 
     results.forEach(({ data, size, found }) => {
         verifiedData.push(...data);
@@ -185,6 +166,10 @@ const processSubarrays = async (subarrays, { req, socket }) => {
 
     return { verifiedData, totalSize, foundSize };
 };
+
+
+
+
 
 
 
@@ -200,7 +185,6 @@ const FileTesting = async (req, res, next) => {
     const credit = await creditModel.findOne({ user: id });
 
 
-    console.log("SOCKET DATA IS HERE = "+socket);
 
 
     const result = processDataFromJson(data, mappingData);
@@ -248,9 +232,7 @@ const FileTesting = async (req, res, next) => {
             totalValid: 0,
             totalData: data.length,
             status: "pending",
-            data: [],
-            operational:"EmailFinder",
-
+            data: []
         },
         success: true
 
@@ -271,6 +253,15 @@ const FileTesting = async (req, res, next) => {
 
     console.log("RESULTED PROJECT BEFORE OPERATION");
     console.log(result);
+
+    const dummyDataForVerification=result.map((row, index) => {
+        result[index]["email"] = verifiedData[index]?.results.emails?.[0]?.email || 'unknown';
+        result[index]["certainty"] = isCertaintyValid(verifiedData[index]?.results.emails?.[0]?.certainty) || 'invalid'
+        result[index]["mxrecords"] = verifiedData[index]?.results.emails?.[0]?.mxRecords?.[0] || 'unknown',
+        result[index]["mxProvider"] =verifiedData[index]?.results.emails?.[0]?.mxProvider || 'unknown'
+    });
+
+    //result data is email certainint mxRecord and mxProvider is added...
 
     const updatedData = result.map((row, index) => {
         result[index]["email"] = verifiedData[index]?.results.emails?.[0]?.email || 'unknown';
@@ -332,12 +323,6 @@ const FileTesting = async (req, res, next) => {
 
     })
 
-
-
-
-
-
-
     res.status(200).json({
         success: true,
         data: newFileData
@@ -375,8 +360,7 @@ const getFileById = async (req, res, next) => {
 
         res.status(200).json({
             success: true,
-            data: fileByIdData,
-            operational:fileByIdData["operational"]
+            data: fileByIdData
         })
     }
     catch (err) {
@@ -388,24 +372,42 @@ const getFileById = async (req, res, next) => {
 
 const fileDownloadController = async (req, res, next) => {
     try {
-        const { userId, fileId } = req.body;
+        const { userId, fileId,operational } = req.body;
+        console.log(req.body);
         const file = await fileModel.findById(fileId);
         if (!file) throw ApiError.badRequest("file not found");
 
         console.log("FIle download controller");
-        console.log(file.data);
-        const data = file.data.map(item => {
-            const { mxProvider, certainty, mxrecords, email, _id,...rest } = item;
+        console.log(file);
+         let data = file.data.map(item => {
+            const { mxProvider, certainty, mxrecords,status,quality, email, _id,...rest } = item;
+            let dummyData;
+            if(file['operational'] == "EmailVerification") {
 
-            const data = {
+                dummyData = {
+                'Vivasales Quality':quality,    
                 
                 'Vivalasales Email': email,
-                'Vivalasales Email Status': certainty,
+                'Vivalasales Email Status': status,
+
              
 
             }
+        }
+        else{
             
-            return {...rest,...data};
+            dummyData = {
+                
+                'Vivalasales Email': email,
+                'Vivalasales Email Status': certainty,
+
+             
+
+            }
+
+        }
+            
+            return {...rest,...dummyData};
 
         });
 
