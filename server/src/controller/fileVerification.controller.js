@@ -320,16 +320,31 @@ const fileVerification = async (req, res, next) => {
                 status: row["result"] || "unknown"
             };
         });
-
-        const promises = dummyVerifiedData.map(async (vl) => {
+        for (const vl of dummyVerifiedData) {
             const { firstName, lastName, domain, email, certainty, mxrecords, mxProvider, quality, result } = vl;
-
-            let newFileTable = new fileTableModal({ firstName, lastName, domain, email, certainty, mxRecord: mxrecords, mxProvider, userId: id, fileId: newFileData["_id"], quality, status: result });
-            newFileTable = await newFileTable.save();
-            newFileData["fileData"].push(newFileTable["_id"]);
-        });
-
-        await Promise.all(promises);
+        
+            try {
+                let newFileTable = new fileTableModal({ 
+                    firstName, 
+                    lastName, 
+                    domain, 
+                    email, 
+                    certainty, 
+                    mxRecord: mxrecords, 
+                    mxProvider, 
+                    userId: id, 
+                    fileId: newFileData["_id"], 
+                    quality, 
+                    status: result 
+                });
+                newFileTable = await newFileTable.save();
+                newFileData["fileData"].push(newFileTable["_id"]);
+            } catch (error) {
+                console.error('Error saving file table:', error);
+                // Handle the error as needed
+            }
+        }
+        
         credit.points = Math.max(0, credit.points - data.length);
         await credit.save();
 
