@@ -9,6 +9,7 @@ import { convertCsvToJson, jsonToExcel, uploadFile, checkStatusFileVerification 
 import { fileURLToPath } from 'url';
 import path from 'path';
 import creditModel from "../model/credit.model.js";
+import mongoose from "mongoose";
 
 
 
@@ -190,18 +191,22 @@ const processSubarrays = async (subarrays, { req, socket }) => {
 
 
 const fileVerification = async (req, res, next) => {
+    const session = await mongoose.startSession();
+    session.startTransaction();
+
     try {
         const { data, socket, mappingData, id, fileName } = req.body;
-
 
         const credit = await creditModel.findOne({ user: id });
 
         let result = processDataFromJson(data, mappingData);
         if (result.length > credit.points) {
+            await session.abortTransaction();
+            session.endSession();
             return res.status(400).send('Insufficient points');
         }
 
-        let fileOperationId = new fileOperationModel({
+        const fileOperationId = new fileOperationModel({
             fullName: mappingData["fullNameColumn"],
             firstName: mappingData["firstNameColumn"],
             lastName: mappingData["lastNameColumn"],
@@ -210,7 +215,7 @@ const fileVerification = async (req, res, next) => {
             country: mappingData["country"]
         });
 
-        fileOperationId = await fileOperationId.save();
+        await fileOperationId.save({ session });
 
         let newFileData = new fileModel({
             user: id,
@@ -247,7 +252,7 @@ const fileVerification = async (req, res, next) => {
         const { verifiedData, totalSize, foundSize } = await processSubarrays(subarrays, { req, socket });
 
         credit.points = Math.max(0, credit.points - foundSize);
-        await credit.save();
+        await credit.save({ session });
 
         const dummyVerifiedData = result.map((row, index) => ({
             ...row,
@@ -260,22 +265,15 @@ const fileVerification = async (req, res, next) => {
         const filterOutDummyData = dummyVerifiedData.filter(row => row.email !== 'unknown');
         const filterOutIndex = filterOutDummyData.map(row => dummyVerifiedData.indexOf(row));
 
-        console.log("filterOutIndex is here is pls check");
-        console.log(filterOutIndex);
-
         const excelSheet = await jsonToExcel(filterOutDummyData);
         const apiKey = process.env["Million_verifier_API_KEY"];
         const fileId = await uploadFile(excelSheet, apiKey);
 
         const fileTotalStatus = await checkStatusFileVerification(fileId["file_id"]);
         await delay(3000);
-        console.log("File total Status is here....");
-        console.log(fileTotalStatus);
 
         const fileGetUrl = `https://bulkapi.millionverifier.com/bulkapi/v2/download?key=${apiKey}&file_id=${fileId["file_id"]}&filter=all`;
         const verifiedResult = await convertCsvToJson(fileGetUrl);
-
-        console.log("verifiedResult is here pls check !!!");
 
         filterOutIndex.forEach((vl, index) => {
             dummyVerifiedData[vl] = verifiedResult[index];
@@ -306,9 +304,8 @@ const fileVerification = async (req, res, next) => {
                 default:
                     emailVerifyCount.invalid++;
                     break;
-
-
             }
+
 
             return {
                 ...data[index],
@@ -320,7 +317,8 @@ const fileVerification = async (req, res, next) => {
                 status: row["result"] || "unknown"
             };
         });
-        for (const vl of dummyVerifiedData) {
+
+       for (const vl of dummyVerifiedData) {
             const { firstName, lastName, domain, email, certainty, mxrecords, mxProvider, quality, result } = vl;
         
             try {
@@ -344,15 +342,14 @@ const fileVerification = async (req, res, next) => {
                 // Handle the error as needed
             }
         }
-        
+
         credit.points = Math.max(0, credit.points - data.length);
-        await credit.save();
+        await credit.save({ session });
 
         newFileData.data = updatedData;
         newFileData.totalValid = foundSize;
         newFileData["EmailFind"]["totalValid"] = foundSize;
         newFileData["EmailFind"]["totalInvalid"] = totalSize - foundSize;
-
         newFileData['EmailVerify']["totalValid"] = emailVerifyCount["valid"];
         newFileData['EmailVerify']['valid_catchAll'] = emailVerifyCount["valid_catchAll"];
         newFileData["EmailVerify"]["totalInvalid"] = emailVerifyCount["invalid"];
@@ -360,7 +357,7 @@ const fileVerification = async (req, res, next) => {
         newFileData["EmailVerify"]["disposable"] = emailVerifyCount["disposable"];
 
         newFileData.status = "completed";
-        newFileData = await newFileData.save();
+        await newFileData.save();
 
         req.io.emit("File_success", {
             message: {
@@ -374,12 +371,17 @@ const fileVerification = async (req, res, next) => {
             success: true
         });
 
+        await session.commitTransaction();
+        session.endSession();
+
         res.status(200).json({
             success: true,
             data: newFileData
         });
 
     } catch (err) {
+        await session.abortTransaction();
+        session.endSession();
         next(err);
     }
 };
