@@ -399,7 +399,7 @@ const fileDownloadController = async (req, res, next) => {
             dummyData = {
                 
                 'Vivalasales Email': email,
-                'Vivalasales Email Status': certainty,
+                'Vivalasales Email Status': "unknown",
 
              
 
