@@ -61,7 +61,7 @@ function ReactJsClientSideTable({fileId}) {
         }
             return (
                 <>
-                    {"N/A"}
+                    {"unknown"}
                 </>
             )
 

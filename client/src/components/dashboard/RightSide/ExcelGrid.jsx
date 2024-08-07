@@ -215,7 +215,7 @@ const GridExample = ({ user, onGridReady, rowData, setRowData, handleOpen, dummy
                                         LastName: value["lastName"],
                                         Domain: value["domain"],
                                         Email: value["email"],
-                                        "Email Status": operational == "EmailFinder"?"N/A":value['quality'],
+                                        "Email Status": operational == "EmailFinder"?"N/A":value['quality'] || "unknown",
                                         MxProvider: value["mxProvider"],
                                         MxRecord: value["mxRecord"]
                                     });
