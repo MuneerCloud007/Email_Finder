@@ -614,7 +614,8 @@ const SampleModal = ({
                             }
                             await schemaError.validate(formData, { abortEarly: false });
                             setErrorModal({});
-                            handleSubmit()
+                            handleSubmit(formData)
+                            
                         }
                         catch (err) {
                             const newErrors = {};
@@ -810,25 +811,32 @@ const FileUploadComponent = () => {
         }
     }, [columns]);
 
-    const removeDuplicates = (data) => {
+    const removeDuplicates = (data, formData) => {
         const uniqueRows = [];
-        const seenRows = new Set();
-
+        const seenKeys = new Set();
+    
         data.forEach((row) => {
-            console.log("Remove Duplicate rows is here:::");
-          
-            const rowString = JSON.stringify(row);
-            if (!seenRows.has(rowString)) {
-                seenRows.add(rowString);
+            const firstName = row[formData["firstName"]];
+            const lastName = row[formData["lastName"]];
+            const fullName = row[formData["fullName"]];
+            const companyName = row[formData["companyName"]];
+            const companyWebsite = row[formData["companyWebsite"]];
+    
+            // Create a unique key for each row based on the fields of interest
+            const uniqueKey = firstName + lastName + (companyName || companyWebsite) || fullName + (companyName || companyWebsite);
+    
+            if (!seenKeys.has(uniqueKey)) {
+                seenKeys.add(uniqueKey);
                 uniqueRows.push(row);
             }
         });
-
+    
         return uniqueRows;
     };
+    
 
 
-    const handleSubmit = async () => {
+    const handleSubmit = async (formData) => {
         const newErrors = {};
 
         try {
@@ -847,7 +855,7 @@ const FileUploadComponent = () => {
                     console.log("LENGTH FULL DATA = " + jsonData.length);
 
                     // Remove duplicates
-                    const cleanedData = removeDuplicates(jsonData);
+                    const cleanedData = removeDuplicates(jsonData,formData);
                     console.log("Cleaned data is here !!!!");
                     console.log(cleanedData);
                     setCleanedData(cleanedData);
