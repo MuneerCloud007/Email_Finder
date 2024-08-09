@@ -286,11 +286,11 @@ const FileTesting = async (req, res, next) => {
     newFileData["EmailFind"]["totalValid"] = foundSize;
     newFileData["EmailFind"]["totalInvalid"] = totalSize - foundSize;
 
-    newFileData['EmailVerify']["totalValid"] = 0
-    newFileData['EmailVerify']['valid_catchAll'] = 0
-    newFileData["EmailVerify"]["totalInvalid"] = 0
-    newFileData["EmailVerify"]["catch_all"] = 0
-    newFileData["EmailVerify"]["disposable"] = 0
+    newFileData['EmailVerify']["totalValid"] = "N/A"
+    newFileData['EmailVerify']['valid_catchAll'] = "N/A"
+    newFileData["EmailVerify"]["totalInvalid"] = "N/A"
+    newFileData["EmailVerify"]["catch_all"] = "N/A"
+    newFileData["EmailVerify"]["disposable"] = "N/A"
 
 
 

@@ -11,24 +11,35 @@ const fileSchema=new mongoose.Schema({
     },
     EmailVerify:{ 
         totalValid:{
-            type:Number,
-            
+            type:String,
+            default:"N/A"
+
         },
         totalInvalid:{
-            type:Number,
+            type:String,
+            default:"N/A"
+
         },
         valid_catchAll:{
-            type:Number
+            type:String,
+            default:"N/A"
+
         },
         catch_all:{
-            type:Number
+            type:String,
+            default:"N/A"
+
         },
         disposable:{
-            type:Number
+            type:String,
+            default:"N/A"
+
         }
     },
     totalValid:{
-        type:Number,
+        type:String,
+        default:"N/A"
+
     },
   
     user:{type:mongoose.Schema.Types.ObjectId,

@@ -255,13 +255,13 @@ const fileVerification = async (req, res, next) => {
 
         const dummyVerifiedData = result.map((row, index) => ({
             ...row,
-            email: verifiedData[index]?.results.emails?.[0]?.email || 'unknown',
+            email: verifiedData[index]?.results.emails?.[0]?.email || 'Not Found',
             certainty: isCertaintyValid(verifiedData[index]?.results.emails?.[0]?.certainty) || 'invalid',
-            mxrecords: verifiedData[index]?.results.emails?.[0]?.mxRecords?.[0] || 'unknown',
-            mxProvider: verifiedData[index]?.results.emails?.[0]?.mxProvider || 'unknown'
+            mxrecords: verifiedData[index]?.results.emails?.[0]?.mxRecords?.[0] || 'Not Found',
+            mxProvider: verifiedData[index]?.results.emails?.[0]?.mxProvider || 'Not Found'
         }));
 
-        const filterOutDummyData = dummyVerifiedData.filter(row => row.email !== 'unknown');
+        const filterOutDummyData = dummyVerifiedData.filter(row => row.email !== 'Not Found');
         const filterOutIndex = filterOutDummyData.map(row => dummyVerifiedData.indexOf(row));
 
         console.log("filterOutIndex is here is pls check");
