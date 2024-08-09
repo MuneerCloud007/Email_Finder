@@ -245,7 +245,7 @@ const EmailVerificationRenderingCard=( {loading,error,navigate,user,file,id,oper
                     <p className=' font-semibold'>Credit Consumed</p>
                     <div className="wrapper-tag flex justify-center">
   
-                    <Tag label={file && file["totalData"]} >
+                    <Tag label={file && file["totalValid"]} >
   
                     </Tag>
                     </div>
