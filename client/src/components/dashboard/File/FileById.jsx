@@ -37,17 +37,16 @@ const Tag = ({ label, color = 'blue', onClick }) => {
 };
 
 const formatDate = (isoString) => {
-  console.log(isoString)
+  console.log(isoString);
   const date = new Date(isoString);
 
   console.log("formatDate");
   console.log(date);
 
-  // Format as "yy-MM-dd hh:mm:ss a"
-  const formattedDate = format(date, 'yy-MMMM-dd hh:mm a');
+  // Format as "yy-MMM-dd hh:mm a"
+  const formattedDate = format(date, 'yy-MMM-dd hh:mm a');
   return formattedDate;
-}
-
+};
 
 
 
@@ -79,7 +78,7 @@ const EmailVerificationRenderingCard=( {loading,error,navigate,user,file,id,oper
                   <Skeleton width={100} height={25} />
                 ) : (
                   <Typography className='text-gray-500' variant='h6'>
-                    ({`Total Rows:${file && file?.["data"]?.length}`})
+                    ({`Total Rows:${file && file?.["fileData"]?.length}`})
                   </Typography>
                 )}
               </div>
@@ -319,7 +318,7 @@ const EmailFinderRenderingCard=({loading,error,navigate,user,file,id,operational
                    <Skeleton width={100} height={25} />
                  ) : (
                    <Typography className='text-gray-500' variant='h6'>
-                     ({`Total Rows:${file && file?.["data"]?.length}`})
+                     ({`Total Rows:${file && file?.["fileData"]?.length}`})
                    </Typography>
                  )}
                </div>

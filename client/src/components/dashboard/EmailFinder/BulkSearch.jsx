@@ -55,17 +55,17 @@ const WrapperTable = () => {
     const user = JSON.parse(localStorage.getItem("user"));
 
 
-    const formatDate = (isoString) => {
-        console.log(isoString)
+    const formatDate =(isoString) => {
+        console.log(isoString);
         const date = new Date(isoString);
       
         console.log("formatDate");
         console.log(date);
       
-        // Format as "yy-MM-dd hh:mm:ss a"
-        const formattedDate = format(date, 'yy-MMMM-dd');
+        // Format as "yy-MMM-dd hh:mm a"
+        const formattedDate = format(date, 'yy-MMM-dd');
         return formattedDate;
-      }
+      };
 
 
     const onMouseOverRow = (vl) => {
