@@ -4,8 +4,6 @@ import '@ag-grid-community/styles/ag-theme-quartz.css';
 import React, { StrictMode, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ClientSideRowModelModule } from "@ag-grid-community/client-side-row-model";
 import { ModuleRegistry } from "@ag-grid-community/core";
-import { Api1, Api2 } from "../../../features/api/Api";
-import { writeFile, utils } from 'xlsx';
 
 import {
     Button,
@@ -22,23 +20,16 @@ ModuleRegistry.registerModules([
     ModuleRegistry
 ]);
 
-const GridExample = ({ user, onGridReady, rowData, dummyColumn, columnDefs, isLoading, onMouseLeaveRow, onMouseOverRow, gridRef }) => {
-    const [addColTable, setColTable] = useState(false);
-    const [addRowTable, setRowTable] = useState(false);
-    const [inputData, setInputData] = useState({ col: "" });
-
-    const onhandleColTable = () => setColTable(!addColTable);
-    const onhandleRowTable = () => setRowTable(!addRowTable);
-
-    const gridStyle = useMemo(() => ({ height: '100%', width: '100%', overflowX: 'auto' }), []);
-
+const GridExample = ({ user, onGridReady, rowData, dummyColumn, columnDefs,isLoading  ,gridRef }) => {
+ 
+    const gridStyle = useMemo(() => ({ height: '100%', width: '100%' }), []);
     console.log(dummyColumn);
     console.log("Here the user is !!!");
-    console.log(user);
+    console.log(user)
+
 
     console.log("COLUMN DEF");
     console.log(columnDefs);
-
     const defaultColDef = useMemo(() => {
         return {
             editable: false,
@@ -48,19 +39,35 @@ const GridExample = ({ user, onGridReady, rowData, dummyColumn, columnDefs, isLo
         };
     }, []);
 
+
+
     useEffect(() => {
-        console.log("gridRef is mounted");
+        console.log("gridRef iS OUNTED");
         console.log(gridRef);
         return () => {
-            console.log("The useEffect rowData");
+            console.log("THE USEFFECT ROWDATA");
             console.log(rowData);
-        };
-    }, [gridRef.current, rowData]);
+        }
+    }, [gridRef.current])
+
+
+
+   
+
+
+
+
+
+
+ 
+
+
 
     return (
-        <div className="container my-3 h-[60vh] pb-4">
+        <div className="container my-3 h-[60vh] pb-4 ">
             <div className="example-wrapper h-[80%]">
-                <div style={gridStyle} className="ag-theme-quartz py-2">
+              
+                <div style={gridStyle} className="ag-theme-quartz py-2 ">
                     <AgGridReact
                         ref={gridRef}
                         rowData={rowData}
@@ -74,14 +81,13 @@ const GridExample = ({ user, onGridReady, rowData, dummyColumn, columnDefs, isLo
                         suppressMultiRangeSelection={true}
                         onGridReady={onGridReady}
                         animateRows={true}
-                        onCellMouseOver={(vl) => onMouseOverRow(vl)}
-                        onCellMouseOut={(vl) => onMouseLeaveRow(vl)}
+                     
+                        gridRef={gridRef}
                     />
                 </div>
             </div>
         </div>
     );
 };
-
 
 export default GridExample

@@ -21,6 +21,22 @@ const email = [
         button_label: "Reset Password",
         button_url:"{{domain}}?token={{content.token}}",
          locale: "en"
+    },
+    {
+        name:"email_finder",
+        subject:"You have recieved Email Finder Link",
+        body:"This the information of Sheet  valid={{valid}}  catchall={{catchall}} invalid={{invalid}} in vivaSales a unique id is registered to your sheet",
+        button_label: "Get to Email Finder",
+        button_url:"{{domain}}/file/:id"
+
+    },
+    {
+        name:"email_finder_and_verification",
+        subject:"You have recieved Email Finder and Verification Link",
+        body:"This the information of Sheet  valid={{valid}}  catchall={{catchall}} invalid={{invalid}} in vivaSales a unique id is registered to your sheet",
+        button_label: "Get to Email Finder and Verification Link",
+        button_url:"{{domain}}/file/:id"
+
     }
 ]
 export { email };

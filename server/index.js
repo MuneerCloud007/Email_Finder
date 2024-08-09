@@ -13,6 +13,7 @@ import { fileURLToPath } from 'url';
 import fileUploadApi from './src/api/fileUpload.api.js';
 import creditApi from './src/api/credit.api.js';
 import  fileVerification  from './src/api/fileVerification.api.js';
+import SingleSearch from './src/api/single.api.js'
 
 dotenv.config();
 
@@ -111,7 +112,7 @@ app.use('/api/v1/user', userApi); //
 app.use('/api/v1/file', fileUploadApi);   ////  ""
 app.use('/api/v1/credit', creditApi);
 app.use('/api/v1/file/verification',fileVerification);
-
+app.use('/api/v1/single/search',SingleSearch);
 // Route to emit message
 app.get('/emit-message', (req, res) => {
   const message = 'Hello from /emit-message route!';

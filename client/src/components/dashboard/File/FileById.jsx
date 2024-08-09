@@ -79,7 +79,7 @@ const EmailVerificationRenderingCard=( {loading,error,navigate,user,file,id,oper
                   <Skeleton width={100} height={25} />
                 ) : (
                   <Typography className='text-gray-500' variant='h6'>
-                    ({`Total leads:${file && file?.["data"]?.length}`})
+                    ({`Total Rows:${file && file?.["data"]?.length}`})
                   </Typography>
                 )}
               </div>
@@ -115,10 +115,22 @@ const EmailVerificationRenderingCard=( {loading,error,navigate,user,file,id,oper
             <Card className=' w-[30%] '>
   
               <CardBody >
-                <h1>{`Stats - ${operational}`}</h1>
+                <h1>{`Stats`}</h1>
                 <div className="divider"></div>
   
                 <List>
+                <ListItem>
+                    Operational Type
+                    <ListItemSuffix>
+                      <Chip
+                        value={operational}
+                        variant="ghost"
+                        size="sm"
+                        className="rounded-full"
+                      />
+                    </ListItemSuffix>
+                  </ListItem>
+
                   <ListItem>
                     Total Records
                     <ListItemSuffix>
@@ -148,7 +160,7 @@ const EmailVerificationRenderingCard=( {loading,error,navigate,user,file,id,oper
                 <div className="container flex w-[100%] justify-evenly">
                  
                   <div className="sub-1 flex flex-col gap-3">
-                    <p className=' font-semibold'>Valid</p>
+                    <p className=' font-semibold'>Found</p>
                     <div className="wrapper-tag flex justify-center">
   
                     <Tag label={file && file["totalValid"]} >
@@ -160,7 +172,7 @@ const EmailVerificationRenderingCard=( {loading,error,navigate,user,file,id,oper
                  
   
                   <div className="sub-1 flex flex-col gap-3">
-                    <p className=' font-semibold'>Invalid</p>
+                    <p className=' font-semibold'>Not Found</p>
                     <div className="wrapper-tag flex justify-center">
   
                     <Tag label={file && file["totalData"]-file["totalValid"]} >
@@ -173,7 +185,7 @@ const EmailVerificationRenderingCard=( {loading,error,navigate,user,file,id,oper
 
               
                   <div className="sub-1 flex flex-col gap-3">
-                    <p className=' font-semibold'>Credit</p>
+                    <p className=' font-semibold'>Credit Consumed</p>
                     <div className="wrapper-tag flex justify-center">
   
                     <Tag label={file && file["totalValid"]} >
@@ -198,10 +210,10 @@ const EmailVerificationRenderingCard=( {loading,error,navigate,user,file,id,oper
                 <p className=' font-semibold mb-3 ml-2'>Email Verification</p>
                 <div className="container flex w-[100%] justify-evenly">
                   <div className="sub-1 flex flex-col gap-3">
-                    <p className=' font-semibold'>Valid</p>
+                    <p className=' font-semibold'>Found</p>
                     <div className="wrapper-tag flex justify-center">
   
-                    <Tag label={file && file["EmailVerify"]["totalValid"]} >
+                    <Tag label={file && file["EmailVerify"]["totalValid"] + file["EmailVerify"]["disposable"]} >
   
                     </Tag>
                     </div>
@@ -210,7 +222,7 @@ const EmailVerificationRenderingCard=( {loading,error,navigate,user,file,id,oper
                  
   
                   <div className="sub-1 flex flex-col gap-3">
-                    <p className=' font-semibold'>Invalid</p>
+                    <p className=' font-semibold'>Not Found</p>
                     <div className="wrapper-tag flex justify-center">
   
                     <Tag label={file && file["EmailVerify"]["totalInvalid"]} >
@@ -229,17 +241,9 @@ const EmailVerificationRenderingCard=( {loading,error,navigate,user,file,id,oper
                     </div>
                   </div>
 
+                 
                   <div className="sub-1 flex flex-col gap-3">
-                    <p className=' font-semibold'>Disposable</p>
-                    <div className="wrapper-tag flex justify-center">
-  
-                    <Tag label={file && file["EmailVerify"]["disposable"]} >
-  
-                    </Tag>
-                    </div>
-                  </div>
-                  <div className="sub-1 flex flex-col gap-3">
-                    <p className=' font-semibold'>Credit</p>
+                    <p className=' font-semibold'>Credit Consumed</p>
                     <div className="wrapper-tag flex justify-center">
   
                     <Tag label={file && file["totalData"]} >
@@ -315,7 +319,7 @@ const EmailFinderRenderingCard=({loading,error,navigate,user,file,id,operational
                    <Skeleton width={100} height={25} />
                  ) : (
                    <Typography className='text-gray-500' variant='h6'>
-                     ({`Total leads:${file && file?.["data"]?.length}`})
+                     ({`Total Rows:${file && file?.["data"]?.length}`})
                    </Typography>
                  )}
                </div>
@@ -351,12 +355,12 @@ const EmailFinderRenderingCard=({loading,error,navigate,user,file,id,operational
              <Card className=' w-[30%] '>
    
                <CardBody >
-                 <h1>{`Stats - ${operational}`}</h1>
+                 <h1>{`Stats`}</h1>
                  <div className="divider"></div>
    
                  <List>
                    <ListItem>
-                     Total Records
+                     Total 
                      <ListItemSuffix>
                        <Chip
                          value={file["totalData"]}
@@ -384,7 +388,7 @@ const EmailFinderRenderingCard=({loading,error,navigate,user,file,id,operational
                  <div className="container flex w-[100%] justify-evenly">
                   
                    <div className="sub-1 flex flex-col gap-3">
-                     <p className=' font-semibold'>Valid</p>
+                     <p className=' font-semibold'>Found</p>
                      <div className="wrapper-tag flex justify-center">
    
                      <Tag label={file && file["totalValid"]} >
@@ -396,7 +400,7 @@ const EmailFinderRenderingCard=({loading,error,navigate,user,file,id,operational
                   
    
                    <div className="sub-1 flex flex-col gap-3">
-                     <p className=' font-semibold'>Invalid</p>
+                     <p className=' font-semibold'>Not Found</p>
                      <div className="wrapper-tag flex justify-center">
    
                      <Tag label={file && file["totalData"]-file["totalValid"]} >
@@ -409,7 +413,7 @@ const EmailFinderRenderingCard=({loading,error,navigate,user,file,id,operational
  
                
                    <div className="sub-1 flex flex-col gap-3">
-                     <p className=' font-semibold'>Credit</p>
+                     <p className=' font-semibold'>Credits Charged</p>
                      <div className="wrapper-tag flex justify-center">
    
                      <Tag label={file && file["totalValid"]} >

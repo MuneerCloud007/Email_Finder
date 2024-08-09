@@ -10,6 +10,9 @@ import fileTableModal from '../model/fileTable.modal.js';
 import { fileDownload } from "./FileHelper/File.js";
 import fileOperationModel from '../model/fileOperation.model.js';
 import mongoose from "mongoose";
+import { create, mailHelper } from "../helper/account.js";
+import UserModal from "../model/user.model.js"
+
 
 
 const __filename = fileURLToPath(import.meta.url);
@@ -28,13 +31,14 @@ const extractDomain = (url) => new URL(url).hostname.replace(/^www\./, '');
 
 
 const isCertaintyValid = (certainty) => {
-    if(Object.values(CertainityEnum).includes(certainty)){
+    if (Object.values(CertainityEnum).includes(certainty)) {
         return "valid"
     }
-    else{
+    else {
         return certainty || "invalid"
 
-    }};
+    }
+};
 
 
 const processDataFromJson = (data, columnMapping) => {
@@ -78,7 +82,7 @@ const makeRequestWithRetry = async (url, data, headers, maxRetries = 5, delayMs 
         try {
             const response = await axios.post(url, data, { headers });
             console.log(response.data);
-            if(response.data.files[0]["total"] == response.data.files[0]["done"]){
+            if (response.data.files[0]["total"] == response.data.files[0]["done"]) {
                 return response.data;
 
             }
@@ -86,7 +90,7 @@ const makeRequestWithRetry = async (url, data, headers, maxRetries = 5, delayMs 
             if (!response.data.files[0]['finished']) {
                 throw new Error('It is not in progress yet!');
             }
-          
+
             return response.data;
         } catch (error) {
             console.log("Error during request:", error.message);
@@ -137,7 +141,7 @@ const processVerification = async (subarray, { req, socket }) => {
         };
 
         const response2 = await makeRequestWithRetry('https://app.icypeas.com/api/search-files/read', checkOption, headers, 1000, customDelay, { req, socket });
-      
+
         const response3 = await axios.post(url2, resultOption, { headers });
         return { data: response3.data.items, found: response2.files[0].found, size: subarray.length };
     }
@@ -181,32 +185,30 @@ const FileTesting = async (req, res, next) => {
     console.log(mappingData);
 
 
-    
+
     const credit = await creditModel.findOne({ user: id });
 
 
 
 
     const result = processDataFromJson(data, mappingData);
-    if (result.length > credit.points) {
-        return res.status(400).send('Insufficient points');
-    }
+
 
     if (result.length > credit.points) {
         return res.status(400).send('Insufficient points');
     }
 
-    let fileOperationId=new fileOperationModel({
-        fullName:mappingData["fullNameColumn"],
-        firstName:mappingData["firstNameColumn"],
-        lastName:mappingData["lastNameColumn"],
-        companyName:mappingData["companyNameColumn"],
-        website:mappingData["WebsiteColumn"],
-        country:mappingData["country"]
+    let fileOperationId = new fileOperationModel({
+        fullName: mappingData["fullNameColumn"],
+        firstName: mappingData["firstNameColumn"],
+        lastName: mappingData["lastNameColumn"],
+        companyName: mappingData["companyNameColumn"],
+        website: mappingData["WebsiteColumn"],
+        country: mappingData["country"]
 
     });
 
-    fileOperationId=await fileOperationId.save();
+    fileOperationId = await fileOperationId.save();
 
 
 
@@ -219,8 +221,8 @@ const FileTesting = async (req, res, next) => {
         totalData: data.length,
         status: "pending",
         data: [],
-        operational:"EmailFinder",
-        fileOperational:fileOperationId["_id"]
+        operational: "EmailFinder",
+        fileOperational: fileOperationId["_id"]
     });
 
     newFileData = await newFileData.save();
@@ -251,40 +253,20 @@ const FileTesting = async (req, res, next) => {
     credit.points = Math.max(0, credit.points - count);
     await credit.save();
 
-    console.log("RESULTED PROJECT BEFORE OPERATION");
-    console.log(result);
 
-    const dummyDataForVerification=result.map((row, index) => {
-        result[index]["email"] = verifiedData[index]?.results.emails?.[0]?.email || 'unknown';
-        result[index]["certainty"] = isCertaintyValid(verifiedData[index]?.results.emails?.[0]?.certainty) || 'invalid'
-        result[index]["mxrecords"] = verifiedData[index]?.results.emails?.[0]?.mxRecords?.[0] || 'unknown',
-        result[index]["mxProvider"] =verifiedData[index]?.results.emails?.[0]?.mxProvider || 'unknown'
-    });
+
+
 
     //result data is email certainint mxRecord and mxProvider is added...
 
     const updatedData = result.map((row, index) => {
-        result[index]["email"] = verifiedData[index]?.results.emails?.[0]?.email || 'unknown';
+        result[index]["email"] = verifiedData[index]?.results.emails?.[0]?.email || 'Not Found';
         result[index]["certainty"] = isCertaintyValid(verifiedData[index]?.results.emails?.[0]?.certainty) || 'invalid'
-        result[index]["mxrecords"] = verifiedData[index]?.results.emails?.[0]?.mxRecords?.[0] || 'unknown',
-        result[index]["mxProvider"] =verifiedData[index]?.results.emails?.[0]?.mxProvider || 'unknown'
-       
-
-
-        const Newdata = {
-            ...data[index],
-            email: verifiedData[index]?.results.emails?.[0]?.email || 'unknown',
-            certainty: isCertaintyValid(verifiedData[index]?.results.emails?.[0]?.certainty) || 'invalid',
-            mxrecords: verifiedData[index]?.results.emails?.[0]?.mxRecords?.[0] || 'unknown',
-            mxProvider: verifiedData[index]?.results.emails?.[0]?.mxProvider || 'unknown'
-        }
-        return Newdata;
-
+        result[index]["mxrecords"] = verifiedData[index]?.results.emails?.[0]?.mxRecords?.[0] || 'Not Found',
+            result[index]["mxProvider"] = verifiedData[index]?.results.emails?.[0]?.mxProvider || 'Not Found'
 
     });
 
-    console.log("Result !!!!!!");
-    console.log(result);
 
     const promises = result.map(async (vl) => {
         const { firstName, lastName, domain, email, certainty, mxrecords, mxProvider } = vl;
@@ -298,13 +280,50 @@ const FileTesting = async (req, res, next) => {
 
     await Promise.all(promises);
 
-    newFileData.data = updatedData;
     newFileData.totalValid = foundSize;
     newFileData.status = "completed"
+
+    newFileData["EmailFind"]["totalValid"] = foundSize;
+    newFileData["EmailFind"]["totalInvalid"] = totalSize - foundSize;
+
+    newFileData['EmailVerify']["totalValid"] = 0
+    newFileData['EmailVerify']['valid_catchAll'] = 0
+    newFileData["EmailVerify"]["totalInvalid"] = 0
+    newFileData["EmailVerify"]["catch_all"] = 0
+    newFileData["EmailVerify"]["disposable"] = 0
+
+
+
+
+
+
+
     newFileData = await newFileData.save();
 
-    console.log("NEW FIle DATA IS HERE PLS CHECK !!");
-    console.log(newFileData);
+    //User Email integration process started....
+    const user = await UserModal.findById(id);
+
+
+    console.log("Email integration is done in email finder pls check in controller");
+
+    await mailHelper({
+        current_user: user,
+        template: 'email_finder',
+        req: req,
+        fileId: newFileData["_id"],
+        externalInfo: {
+            Operational: "EmailFinder",
+            name: `${user["firstName"]} ${user["lastName"]}`,
+            data: {
+                catchall: "N/A",
+                invalid: "N/A",
+                valid: "N/A"
+            }
+
+        }
+    });
+
+
 
 
 
@@ -314,9 +333,7 @@ const FileTesting = async (req, res, next) => {
             file_name: fileName,
             totalValid: foundSize,
             totalData: totalSize,
-            data: updatedData,
             status: "completed"
-
 
         },
         success: true
@@ -372,42 +389,47 @@ const getFileById = async (req, res, next) => {
 
 const fileDownloadController = async (req, res, next) => {
     try {
-        const { userId, fileId,operational } = req.body;
+        const { userId, fileId, operational } = req.body;
         console.log(req.body);
-        const file = await fileModel.findById(fileId);
+        const file = await fileModel.findById(fileId).populate("fileData");
         if (!file) throw ApiError.badRequest("file not found");
 
         console.log("FIle download controller");
         console.log(file);
-         let data = file.data.map(item => {
-            const { mxProvider, certainty, mxrecords,status,quality, email, _id,...rest } = item;
+        let data = file["fileData"].map(item => {
+            const { mxProvider, certainty, mxRecord, status, quality, email, _id, firstName, lastName, domain } = item;
             let dummyData;
-            if(file['operational'] == "EmailVerification") {
+            if (file['operational'] == "EmailVerification") {
+                dummyData = {
+                    "First Name": firstName,
+                    "Last Name": lastName,
+                    "Domain or CompanyName": domain,
+                    'Vivalasales Email': email || "Not Found",
+                    'Vivasales Quality': quality || "Not Found",
+                    'Vivalasales Email Status': status || "Not Found",
+                    "MxProvider": mxProvider,
+                    "MxRecord": mxRecord
+                }
+            }
+            else {
 
                 dummyData = {
-                'Vivasales Quality':quality,    
-                
-                'Vivalasales Email': email,
-                'Vivalasales Email Status': status,
+                    "First Name": firstName,
+                    "Last Name": lastName,
+                    "Domain or CompanyName": domain,
+                    'Vivalasales Email': email || "Not Found",
+                    'Vivasales Quality': "Not Found",
+                    'Vivalasales Email Status': "Not Found",
+                    "MxProvider": mxProvider,
+                    "MxRecord": mxrecords
 
-             
 
-            }
-        }
-        else{
-            
-            dummyData = {
-                
-                'Vivalasales Email': email,
-                'Vivalasales Email Status': "unknown",
 
-             
+                }
 
             }
 
-        }
-            
-            return {...rest,...dummyData};
+            return { ...dummyData };
 
         });
 
@@ -580,9 +602,58 @@ const fileById = async (req, res, next) => {
 
         }
         const newFile = await file.populate("fileData");
+
+        let data = newFile["fileData"].map(item => {
+            const { mxProvider, certainty, mxrecords, status, quality, email, _id, firstName, lastName, domain } = item;
+            let dummyData;
+            if (newFile['operational'] == "EmailVerification") {
+
+                dummyData = {
+                    "First Name": firstName,
+                    "Last Name": lastName,
+                    "Domain or CompanyName": domain,
+                    'Vivalasales Email': email || "Not Found",
+                    'Vivasales Quality': quality || "Not Found",
+                    'Vivalasales Email Status': status || "Not Found",
+                    "MxProvider": mxProvider,
+                    "MxRecord": mxrecords
+                }
+            }
+            else {
+
+                dummyData = {
+                    "First Name": firstName,
+                    "Last Name": lastName,
+                    "Domain or CompanyName": domain,
+                    'Vivalasales Email': email || "Not Found",
+                    'Vivasales Quality': "Not Found",
+                    'Vivalasales Email Status': "Not Found",
+                    "MxProvider": mxProvider || "Not Found",
+                    "MxRecord": mxrecords || "Not Found"
+
+
+
+                }
+
+            }
+
+            return { ...dummyData };
+
+        });
+
+
+
+
+
+
+
+
+
+
+
         res.status({
             success: true,
-            data: newFile
+            data: data
         })
 
 

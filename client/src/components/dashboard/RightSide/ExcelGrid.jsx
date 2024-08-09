@@ -211,13 +211,14 @@ const GridExample = ({ user, onGridReady, rowData, setRowData, handleOpen, dummy
                             if (rowCount > 0) {
                                 const newData = rowData.reduce((newValue, value) => {
                                     newValue.push({
-                                        FirstName: value["firstName"],
-                                        LastName: value["lastName"],
-                                        Domain: value["domain"],
-                                        Email: value["email"],
-                                        "Email Status": operational == "EmailFinder"?"N/A":value['quality'] || "unknown",
-                                        MxProvider: value["mxProvider"],
-                                        MxRecord: value["mxRecord"]
+                                        "First Name": value["firstName"],
+                                        "Last Name": value["lastName"],
+                                        "Domain or CompanyName": value["domain"],
+                                        "Vivasales Email": value["email"],
+                                        "Vivasales Quality":operational == "EmailFinder"?"N/A":value['quality'] || "unknown",
+                                        "Vivasales Email Status": operational == "EmailFinder"?"N/A":value['status'] || "unknown",
+                                        "MxProvider": value["mxProvider"],
+                                        "MxRecord": value["mxRecord"]
                                     });
                                     return newValue;
                                 }, []);

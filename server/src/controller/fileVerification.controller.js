@@ -10,6 +10,9 @@ import { convertCsvToJson, jsonToExcel, uploadFile, checkStatusFileVerification 
 import { fileURLToPath } from 'url';
 import path from 'path';
 import creditModel from "../model/credit.model.js";
+import UserModal from "../model/user.model.js"
+import { create, mailHelper } from "../helper/account.js";
+import mongoose from "mongoose";
 
 
 
@@ -311,15 +314,7 @@ const fileVerification = async (req, res, next) => {
 
             }
 
-            return {
-                ...data[index],
-                email: row["email"] || 'unknown',
-                certainty: isCertaintyValid(row["certainty"]) || 'invalid',
-                mxrecords: row["mxrecords"] || 'unknown',
-                mxProvider: row["mxProvider"] || 'unknown',
-                quality: row["quality"] || "unknown",
-                status: row["result"] || "unknown"
-            };
+          
         });
         for (const vl of dummyVerifiedData) {
             const { firstName, lastName, domain, email, certainty, mxrecords, mxProvider, quality, result } = vl;
@@ -346,10 +341,9 @@ const fileVerification = async (req, res, next) => {
             }
         }
         
-        credit.points = Math.max(0, credit.points - data.length);
+        credit.points = Math.max(0, credit.points - foundSize);
         await credit.save();
 
-        newFileData.data = updatedData;
         newFileData.totalValid = foundSize;
         newFileData["EmailFind"]["totalValid"] = foundSize;
         newFileData["EmailFind"]["totalInvalid"] = totalSize - foundSize;
@@ -363,13 +357,40 @@ const fileVerification = async (req, res, next) => {
         newFileData.status = "completed";
         newFileData = await newFileData.save();
 
+        const user=await UserModal.findById(id);
+
+
+        await mailHelper({
+            current_user: user,
+            template: 'email_finder_and_verification',
+            req: req,
+            fileId:newFileData["_id"],
+            externalInfo:{
+                Operational:"Email Verification",
+                name:`${user["firstName"]} ${user["lastName"]}`,
+                data:{
+                    catchall:emailVerifyCount["catch_all"] +  emailVerifyCount["valid_catchAll"],
+                    valid:emailVerifyCount["valid"],
+                    invalid:emailVerifyCount["invalid"] + emailVerifyCount["disposable"]
+                }
+                
+            }
+        });
+    
+
+
+
+
+
+
+
+
         req.io.emit("File_success", {
             message: {
                 user: id,
                 file_name: fileName,
                 totalValid: foundSize,
                 totalData: totalSize,
-                data: updatedData,
                 status: "completed"
             },
             success: true

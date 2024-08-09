@@ -39,7 +39,7 @@ const create = function ({ current_user, req }) {
 
 }
 
-const mailHelper = async function ({ template, current_user,req }) {
+const mailHelper = async function ({ template, current_user,req,fileId,externalInfo }) {
     if (template == 'email_verification') {
 
 
@@ -71,6 +71,49 @@ const mailHelper = async function ({ template, current_user,req }) {
                 browser: risk.browser
             }
         });
+
+    }
+
+    if(template=='email_finder_and_verification'){
+
+
+        let risk = create({ current_user, req });
+        await mail.send({
+            to: current_user.email,
+            locale: 'en',
+            id: current_user.id,
+            template: 'email_finder_and_verification',
+            content: {
+                ip: risk.ip,
+                time: risk.time,
+                device: risk.device,
+                browser: risk.browser
+            },
+            fileId,
+            externalInfo
+        });
+
+    }
+    if(template == 'email_finder'){
+
+        let risk = create({ current_user, req });
+        await mail.send({
+            to: current_user.email,
+            locale: 'en',
+            id: current_user.id,
+            template: 'email_finder',
+            content: {
+                ip: risk.ip,
+                time: risk.time,
+                device: risk.device,
+                browser: risk.browser
+            },
+            fileId,
+            externalInfo
+        });
+
+
+
 
     }
 

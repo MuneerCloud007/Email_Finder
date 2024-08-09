@@ -9,6 +9,7 @@ import { useDispatch } from "react-redux"
 import { addEmailVerifier, updateCredits,getCreditSlice } from "./features/slice/emailVerifier";
 import socketContextApi from "./contextApi/SocketContextApi";
 import { getAllFileSlice } from "./features/slice/fileSlice";
+import {getAllSingleEmailSearchSlice} from "./features/slice/singleEmailSearch";
 
 
 const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
@@ -18,7 +19,7 @@ function App() {
 
   const storedSocketId = localStorage.getItem('socketId');
 
-  const socket = useMemo(() => io('https://test.onlylwc.com/', {
+  const socket = useMemo(() => io('http://localhost:5000', {
     query: { socketId: storedSocketId },
   }), [storedSocketId]);
 
@@ -113,6 +114,51 @@ function App() {
 
 
       })
+
+      socket.on("Single_Finder_Pending",({message,success})=>{
+        dispatch(getAllSingleEmailSearchSlice({
+          method:"post",
+          url:"/api/v1/single/search/getAll",
+          data:{
+              id:user["userId"]
+          }
+      }));
+
+      })
+      socket.on("Single_Finder_Success",({message,success})=>{
+        dispatch(getAllSingleEmailSearchSlice({
+          method:"post",
+          url:"/api/v1/single/search/getAll",
+          data:{
+              id:user["userId"]
+          }
+      }));
+      })
+
+      socket.on("Single_Verification_Pending",({message,success})=>{
+        dispatch(getAllSingleEmailSearchSlice({
+          method:"post",
+          url:"/api/v1/single/search/getAll",
+          data:{
+              id:user["userId"]
+          }
+      }));
+      })
+      socket.on("Single_Verification_Success",({message,success})=>{
+        dispatch(getAllSingleEmailSearchSlice({
+          method:"post",
+          url:"/api/v1/single/search/getAll",
+          data:{
+              id:user["userId"]
+          }
+      }));
+      })
+      
+
+
+
+
+
 
       socket.on("LoginUser", (data) => {
         console.log("I am Login User");

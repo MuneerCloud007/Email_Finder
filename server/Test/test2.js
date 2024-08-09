@@ -1,26 +1,19 @@
-import request from 'request';
-import csvParser from 'csv-parser';
-import { PassThrough } from 'stream';
+import axios from 'axios';
 
-// Function to convert CSV to JSON with dynamic header mapping
-const convertCsvToJson = (csvUrl) => {
-  return new Promise((resolve, reject) => {
-    const results = [];
-    request(csvUrl)
-      .pipe(new PassThrough())
-      .pipe(csvParser())
-      .on('data', (data) => results.push(data))
-      .on('end', () => {
-        resolve(results);
-      })
-      .on('error', (error) => {
-        reject(error);
-      });
-  });
-};
+const apiKey = 'cpgqIg2532EmklNRIM3D5e5z7puKIj'; // Replace with your actual API key
+const requestId = 'vmgrbfsvwfqisel'; // Replace with your actual request ID
 
-// URL of the CSV file
-const csvUrl = 'https://bulkapi.millionverifier.com/bulkapi/v2/download?key=I1bhNtONTtv9oVPizmDpvoYTe&file_id=27008124&filter=all';
-const data=convertCsvToJson(csvUrl).then((data)=>console.log(data)).catch((err)=>console.log(err));
-
-  export {convertCsvToJson}
+axios.get(`https://api.dropcontact.io/batch/${requestId}`, {
+  headers: {
+    'X-Access-Token': apiKey
+  }
+})
+.then(response => {
+  console.log(response.data);
+  if(response.data["data"]) {
+  console.log( response.data["data"][2]["email"]);
+  }
+})
+.catch(error => {
+  console.error('Error:', error.response ? error.response.data : error.message);
+});

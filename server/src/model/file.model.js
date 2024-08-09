@@ -12,6 +12,7 @@ const fileSchema=new mongoose.Schema({
     EmailVerify:{ 
         totalValid:{
             type:Number,
+            
         },
         totalInvalid:{
             type:Number,
@@ -47,17 +48,8 @@ const fileSchema=new mongoose.Schema({
     },
 
     totalData:{type:Number,required:true},
-    data: [{ type: mongoose.Schema.Types.Mixed, required: true }]
   },{timestamps:true})
 
-  fileSchema.pre('save', function (next) {
-    this.data = this.data.map(item => {
-        if (!item._id) {
-            item._id = new mongoose.Types.ObjectId();
-        }
-        return item;
-    });
-    next();
-});
+
 
 export default mongoose.model("file",fileSchema);

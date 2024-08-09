@@ -11,7 +11,8 @@ import Theme from "./RightSide/customization/Theme.jsx"
 import NotDeveloped from "../../pages/Notdeveloped.jsx"
 import TransactionsTable from "./RightSide/FileTable/FileTable.jsx"
 import BulkSearch from "./EmailFinder/BulkSearch.jsx";
-import SingleSearch from "./EmailFinder/SingleSearch.jsx"
+import SingleSearch from "./EmailFinder/SingleSearchPage.jsx"
+import ProfilePage from './Profile/ProfilePage.jsx';
 const LoadingSpinner = () => {
   return (
     <div className="flex justify-center items-center h-32">
@@ -62,7 +63,7 @@ function Dashboard() {
       </div>
       }
       {RightSideState == 4 && <div className=' container p-4 mt-3' style={{ display: "flex", flexDirection: "column" }}>
-        <NotDeveloped/>
+        <ProfilePage/>
 
 
       </div>

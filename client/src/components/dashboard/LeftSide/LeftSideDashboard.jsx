@@ -10,6 +10,11 @@ import {
   Accordion,
   AccordionHeader,
   AccordionBody,
+  Button,
+  Dialog,
+  DialogHeader,
+  DialogBody,
+  DialogFooter,
 
 } from "@material-tailwind/react";
 import {
@@ -23,16 +28,26 @@ import {
   CheckIcon
 
 } from "@heroicons/react/24/solid";
+
+
+
+
+
 import { ChevronRightIcon, ChevronDownIcon } from "@heroicons/react/24/outline";
 import { useNavigate } from "react-router-dom";
 
 export default function MultiLevelSidebar({ RightSideState, setRightSideState }) {
   const [open, setOpen] = React.useState(0);
+  const [logOutOpen,setLogoutOpen]=React.useState(false);
 
 
   const handleOpen = (value) => {
     setOpen(open === value ? 0 : value);
   };
+  const handleLogoutOpen=()=>{
+    setLogoutOpen(!logOutOpen);
+
+  }
   const navigate = useNavigate()
 
   return (
@@ -59,7 +74,7 @@ export default function MultiLevelSidebar({ RightSideState, setRightSideState })
                   <MagnifyingGlassIcon className="h-5 w-5" />
                 </ListItemPrefix>
                 <Typography color="blue-gray" className="mr-auto font-normal">
-                  Email Finder
+                  Email Search
                 </Typography>
               </AccordionHeader>
             </ListItem>
@@ -83,41 +98,10 @@ export default function MultiLevelSidebar({ RightSideState, setRightSideState })
               </List>
             </AccordionBody>
           </Accordion>
-          <Accordion
-            open={open === 2}
-            icon={
-              <ChevronDownIcon
-                strokeWidth={2.5}
-                className={`mx-auto h-4 w-4 transition-transform ${open === 2 ? "rotate-180" : ""}`}
-              />
-            }
-          >
-            <ListItem className="p-0" selected={open === 2}>
-              <AccordionHeader onClick={() => handleOpen(2)} className="border-b-0 p-3">
-                <ListItemPrefix>
-                  <CheckIcon className="h-5 w-5" />
-                </ListItemPrefix>
-                <Typography color="blue-gray" className="mr-auto font-normal">
-                  Email Verification
-                </Typography>
-              </AccordionHeader>
-            </ListItem>
-            <AccordionBody className="py-1">
-              <List className="p-0">
-                <ListItem>
-                  <ListItemPrefix>
-                  </ListItemPrefix>
-                  Bulk Verification
-                </ListItem>
-                <ListItem>
-                  <ListItemPrefix>
-                  </ListItemPrefix>
-                  Single Verification
-                </ListItem>
-              </List>
-            </AccordionBody>
-          </Accordion>
-          <ListItem>
+         
+          <ListItem  onClick={()=>{
+           setRightSideState(3)
+          }}>
             <ListItemPrefix>
               <InboxIcon className="h-5 w-5" />
             </ListItemPrefix>
@@ -126,26 +110,19 @@ export default function MultiLevelSidebar({ RightSideState, setRightSideState })
             <Chip value="14" size="sm" variant="ghost" color="blue-gray" className="rounded-full" />
           </ListItemSuffix> */}
           </ListItem>
-          <ListItem>
+
+          <ListItem onClick={()=>{
+           setRightSideState(4)
+          }}>
             <ListItemPrefix>
               <UserCircleIcon className="h-5 w-5" />
             </ListItemPrefix>
             Profile
           </ListItem>
-          <ListItem>
-            <ListItemPrefix>
-              <Cog6ToothIcon className="h-5 w-5" />
-            </ListItemPrefix>
-            Settings
-          </ListItem>
-          <ListItem onClick={() => {
-
-
-            localStorage.clear();
-            location.href = "/";
-
-
-          }}>
+        
+          <ListItem onClick={
+            handleLogoutOpen
+          }>
             <ListItemPrefix>
               <PowerIcon className="h-5 w-5" />
             </ListItemPrefix>
@@ -153,6 +130,39 @@ export default function MultiLevelSidebar({ RightSideState, setRightSideState })
           </ListItem>
         </List>
       </Card>
+
+      <Dialog open={logOutOpen} handler={handleLogoutOpen}>
+        <DialogHeader>Log out</DialogHeader>
+        <DialogBody>
+        Are you sure you want to logout ?    
+        </DialogBody>
+        <DialogFooter>
+          <Button
+            variant="text"
+            color="green"
+            onClick={handleLogoutOpen}
+            className="mr-1"
+          >
+            <span>Cancel</span>
+          </Button>
+          <Button variant="gradient" color="red" onClick={()=>{
+          
+
+
+              localStorage.clear();
+              location.href = "/";
+              handleLogoutOpen();
+  
+  
+            
+          }}>
+            <span>Log out</span>
+          </Button>
+        </DialogFooter>
+      </Dialog>
+
+
+
     </div>
   );
 }
