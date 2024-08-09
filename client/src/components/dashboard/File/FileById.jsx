@@ -358,6 +358,17 @@ const EmailFinderRenderingCard=({loading,error,navigate,user,file,id,operational
                  <div className="divider"></div>
    
                  <List>
+                 <ListItem>
+                    Operational Type
+                    <ListItemSuffix>
+                      <Chip
+                        value={"Email Finder"}
+                        variant="ghost"
+                        size="sm"
+                        className="rounded-full"
+                      />
+                    </ListItemSuffix>
+                  </ListItem>
                    <ListItem>
                      Total 
                      <ListItemSuffix>
@@ -386,6 +397,7 @@ const EmailFinderRenderingCard=({loading,error,navigate,user,file,id,operational
                  <p className=' font-semibold mb-3 ml-2'>Email Finder</p>
                  <div className="container flex w-[100%] justify-evenly">
                   
+                  
                    <div className="sub-1 flex flex-col gap-3">
                      <p className=' font-semibold'>Found</p>
                      <div className="wrapper-tag flex justify-center">
@@ -412,7 +424,7 @@ const EmailFinderRenderingCard=({loading,error,navigate,user,file,id,operational
  
                
                    <div className="sub-1 flex flex-col gap-3">
-                     <p className=' font-semibold'>Credits Charged</p>
+                     <p className=' font-semibold'>Credit Consumed</p>
                      <div className="wrapper-tag flex justify-center">
    
                      <Tag label={file && file["totalValid"]} >
