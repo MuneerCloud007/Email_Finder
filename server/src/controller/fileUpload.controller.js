@@ -420,8 +420,8 @@ const fileDownloadController = async (req, res, next) => {
                     'Vivalasales Email': email || "Not Found",
                     'Vivasales Quality': "Not Found",
                     'Vivalasales Email Status': "Not Found",
-                    "MxProvider": mxProvider,
-                    "MxRecord": mxrecords
+                    "MxProvider": mxProvider || "Not Found",
+                    "MxRecord": mxRecord || "Not Found"
 
 
 
